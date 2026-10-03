@@ -1,0 +1,4125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>S2S</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --kraft: #e7dcc0;
+    --kraft-dark: #d8c9a3;
+    --cork: #8a6242;
+    --cork-dark: #6e4c31;
+    --card: #fffdf7;
+    --ink: #21324d;
+    --ink-soft: #4a5a75;
+    --highlighter: #f2cf4e;
+    --sticky-pink: #f2989b;
+    --sticky-mint: #a9cbb0;
+    --sticky-blue: #a6c3e0;
+    --line: #cbbd9c;
+    --shadow: rgba(33, 50, 77, 0.18);
+    --radius: 14px;
+    --font-display: 'Kalam', cursive;
+    --font-body: 'Work Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  .phone[data-theme="dark"]{
+    --kraft: #232838;
+    --kraft-dark: #1a1e2b;
+    --card: #2d3346;
+    --ink: #edeae0;
+    --ink-soft: #a3aac2;
+    --highlighter: #e0bd3a;
+    --sticky-pink: #d97a7d;
+    --sticky-mint: #7fa98c;
+    --sticky-blue: #7d9dc4;
+    --line: #454c66;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+  .phone[data-theme="dark"] .cover{
+    box-shadow: 0 6px 14px var(--shadow);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+
+  html{ background: var(--kraft); }
+  body{
+    font-family: var(--font-body);
+    background: var(--kraft);
+    min-height: 100dvh;
+    color: var(--ink);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+
+  .stage{ width:100%; }
+
+  /* ---------- app shell ---------- */
+  .phone{
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100dvh;
+    background: var(--kraft);
+    position: relative;
+    overflow: hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  @media (min-width: 481px){
+    .phone{
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+    }
+  }
+
+  .app-header{
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 14px;
+    background: linear-gradient(180deg, var(--kraft) 0%, var(--kraft) 85%, transparent 100%);
+    position: relative;
+    z-index: 5;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap: 6px;
+  }
+  .brand-mark{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    transform: rotate(-2deg);
+    display:inline-block;
+  }
+  .brand-mark .accent{ color: #c65b3f; }
+  .brand-tag{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  .screen{
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 20px 100px;
+    position: relative;
+  }
+  .screen.no-nav-pad{ padding-bottom: 24px; }
+  .screen::-webkit-scrollbar{ width: 0; }
+
+  /* ---------- index card ---------- */
+  .card{
+    background: var(--card);
+    border-radius: 8px;
+    padding: 14px 14px 12px;
+    margin: 0 0 18px;
+    position: relative;
+    box-shadow: 0 6px 14px var(--shadow);
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .card.tilt-l{ transform: rotate(-1.1deg); }
+  .card.tilt-r{ transform: rotate(1.1deg); }
+
+  /* ---------- search screen ---------- */
+  .search-row{
+    display:flex;
+    gap: 8px;
+    margin: 10px 0 14px;
+  }
+  .search-box{
+    flex:1;
+    background: var(--card);
+    border-radius: 24px;
+    padding: 10px 16px;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .search-box input{
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family: var(--font-body);
+    font-size: 14px;
+    width: 100%;
+    color: var(--ink);
+  }
+  .search-box input::placeholder{ color: #9aa6bb; }
+
+  .tabs{
+    display:flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .tab-btn{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor:pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .tab-btn.active{
+    background: var(--ink);
+    color: var(--kraft);
+  }
+  .tab-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  /* ---------- Filter open button (on search screen) ---------- */
+  .filter-open-btn{
+    width: 100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--ink);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor:pointer;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 10px var(--shadow);
+  }
+  .fob-left{ display:flex; align-items:center; gap:8px; }
+  .fob-icon{ font-size: 15px; }
+  .fob-summary{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+  .fob-arrow{ color: var(--ink); }
+  .filter-open-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  /* ---------- full-screen filter view ---------- */
+  .filter-section-title{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    letter-spacing: 0.4px;
+    margin: 18px 0 8px;
+  }
+  .filter-section-title:first-of-type{ margin-top: 4px; }
+
+  .item-title{
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 4px;
+  }
+  .item-meta{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .item-bottom{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .price{
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+    color: #2b6e4f;
+  }
+  .price.free{ color: #c65b3f; }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: var(--sticky-mint);
+    color: #1e3d2a;
+  }
+
+  .card:hover{ cursor:pointer; }
+
+  /* ---------- availability status indicator ---------- */
+  .status-row{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+  .item-bottom-right{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap: 5px;
+  }
+  .status-dot{
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink:0;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+  }
+  .status-dot.available{ background: #2f9e5c; }
+  .status-dot.rented{ background: #e3b414; }
+  .status-dot.sold{ background: #d64545; }
+  .status-dot.overdue{ background: #d64545; animation: pulseDot 1.4s ease-in-out infinite; }
+  @keyframes pulseDot{
+    0%, 100%{ box-shadow: 0 0 0 3px rgba(214,69,69,0.12); }
+    50%{ box-shadow: 0 0 0 5px rgba(214,69,69,0.22); }
+  }
+  .status-label{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+  }
+  .status-label.available{ color: #1e6e3e; }
+  .status-label.rented{ color: #8a6b06; }
+  .status-label.sold{ color: #a52d2d; }
+  .status-label.overdue{ color: #a52d2d; }
+  .due-note{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    margin: 6px 0 0;
+  }
+  .due-note.overdue{ color: #a52d2d; font-weight: 600; }
+
+  /* ---------- detail / request screen ---------- */
+  .back-btn{
+    background:none;
+    border:none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    cursor:pointer;
+    padding: 8px 0 4px;
+    display:flex;
+    align-items:center;
+    gap: 4px;
+  }
+  .back-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  .cover{
+    width: 100%;
+    height: 150px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--sticky-pink), var(--highlighter));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 44px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 14px var(--shadow);
+  }
+
+  .detail-title{
+    font-family: var(--font-display);
+    font-size: 22px;
+    margin: 0 0 2px;
+  }
+  .detail-sub{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .seller-row{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 10px var(--shadow);
+  }
+  .avatar{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--kraft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: var(--font-display);
+    font-weight:700;
+    font-size: 14px;
+    flex-shrink:0;
+  }
+  .seller-name{ font-size: 13px; font-weight:600; }
+  .seller-verified{ font-family: var(--font-mono); font-size: 10px; color: #2b6e4f; }
+
+  label.field-label{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    display:block;
+    margin: 12px 0 6px;
+    letter-spacing: 0.3px;
+  }
+  textarea, select, input[type=text], input[type=email], input[type=password]{
+    width: 100%;
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    resize: none;
+  }
+  textarea:focus, select:focus, input:focus{
+    outline: 2px solid #c65b3f;
+    outline-offset: 1px;
+  }
+
+  .btn-primary{
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    border-radius: 10px;
+    border: none;
+    background: var(--ink);
+    color: var(--kraft);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-primary:active{ transform: translateY(0); }
+  .btn-primary:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
+  .btn-primary:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+
+  .btn-secondary{
+    width: 100%;
+    margin-top: 10px;
+    padding: 11px;
+    border-radius: 10px;
+    border: 1.5px dashed var(--ink-soft);
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  /* ---------- meet screen ---------- */
+  .status-pill{
+    display:inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--highlighter);
+    color: #4a3a05;
+    margin-bottom: 12px;
+  }
+
+  .spot-option{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    background: var(--card);
+    margin-bottom: 10px;
+    cursor:pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .spot-option.selected{
+    border-color: var(--ink);
+    background: #f4efe0;
+  }
+  .spot-option input{ accent-color: var(--ink); width:auto; }
+  .spot-emoji{ font-size: 18px; }
+  .spot-name{ font-size: 13px; font-weight: 600; }
+
+  .success-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    padding-top: 30px;
+  }
+  .success-mark{
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: var(--sticky-mint);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 32px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 18px var(--shadow);
+  }
+  .success-title{
+    font-family: var(--font-display);
+    font-size: 22px;
+    margin: 0 0 6px;
+  }
+  .summary-card{
+    width: 100%;
+    text-align:left;
+    margin-top: 20px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    font-size: 12px;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .summary-row:last-child{ border-bottom:none; }
+  .summary-key{ color: var(--ink-soft); font-family: var(--font-mono); }
+  .summary-val{ font-weight: 600; text-align:right; }
+
+  .summary-row-btn{
+    cursor:pointer;
+    border-radius: 6px;
+    padding: 6px 6px;
+    margin: 0 -6px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .summary-row-btn:hover{ background: var(--kraft-dark); }
+  .summary-row-btn.active{ background: var(--ink); }
+  .summary-row-btn.active .summary-key,
+  .summary-row-btn.active .summary-val{ color: var(--kraft); }
+  .summary-row-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  /* ---------- bottom nav ---------- */
+  .bottom-nav{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    background: var(--kraft-dark);
+    border-top: 1px solid rgba(0,0,0,0.08);
+    display:flex;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    z-index: 10;
+  }
+  .nav-btn{
+    flex:1;
+    background:none;
+    border:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    cursor:pointer;
+    padding: 4px;
+    position: relative;
+  }
+  .nav-btn.active{ color: var(--ink); font-weight: 700; }
+  .nav-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+  .nav-icon{ font-size: 17px; }
+  .nav-badge-dot{
+    position:absolute;
+    top: 2px;
+    right: 24%;
+    width: 8px;
+    height: 8px;
+    border-radius:50%;
+    background:#d64545;
+    box-shadow: 0 0 0 2px var(--kraft-dark);
+  }
+
+  .empty-state{
+    text-align:center;
+    padding-top: 60px;
+    color: var(--ink-soft);
+  }
+  .empty-state .em{ font-size: 34px; display:block; margin-bottom: 10px; }
+  .empty-state p{ font-family: var(--font-mono); font-size: 12px; }
+
+  .req-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .req-status{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 10px;
+  }
+  .req-status.pending{ background:#f2e2a1; color:#5c4a05; }
+  .req-status.accepted{ background: var(--sticky-mint); color:#1e3d2a; }
+  .req-status.declined{ background:#e8b9b9; color:#7a2020; }
+
+  .fade-in{ animation: fadeIn 0.25s ease-out; }
+  @keyframes fadeIn{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  /* ---------- auth screens ---------- */
+  .auth-screen{
+    padding-top: 30px;
+  }
+  .auth-logo{
+    text-align:center;
+    margin-bottom: 22px;
+  }
+  .auth-logo .brand-mark{
+    font-size: 40px;
+    transform: rotate(-2deg);
+  }
+  .auth-logo .brand-tag{
+    text-align:center;
+    margin-top: 6px;
+  }
+
+  .auth-toggle{
+    display:flex;
+    background: var(--kraft-dark);
+    border-radius: 24px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .auth-toggle button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding: 9px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    border-radius: 20px;
+    cursor:pointer;
+  }
+  .auth-toggle button.active{
+    background: var(--ink);
+    color: var(--kraft);
+    font-weight: 700;
+  }
+
+  .field-error{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #b03a2e;
+    margin-top: 4px;
+  }
+
+  .helper-text{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .link-text{
+    background:none;
+    border:none;
+    color: #c65b3f;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor:pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .center-note{
+    text-align:center;
+    margin-top: 14px;
+  }
+
+  /* role choice cards */
+  .role-card{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    cursor:pointer;
+  }
+  .role-emoji{
+    width: 42px; height:42px;
+    border-radius: 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size: 20px;
+    flex-shrink:0;
+  }
+  .role-emoji.student{ background: var(--sticky-blue); }
+  .role-emoji.college{ background: var(--highlighter); }
+  .role-title{
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight:700;
+    margin-bottom: 2px;
+  }
+  .role-desc{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  .role-arrow{
+    margin-left:auto;
+    font-size: 18px;
+    color: var(--ink-soft);
+  }
+
+  /* unique id badge */
+  .id-badge{
+    background: var(--ink);
+    color: var(--kraft);
+    border-radius: 10px;
+    padding: 16px;
+    text-align:center;
+    margin: 16px 0;
+    box-shadow: 0 6px 14px var(--shadow);
+  }
+  .id-badge .id-label{
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    opacity: 0.75;
+    margin-bottom: 6px;
+  }
+  .id-badge .id-value{
+    font-family: var(--font-mono);
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    word-break: break-all;
+  }
+  .id-badge .id-copy{
+    margin-top: 10px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--kraft);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 6px 12px;
+    border-radius: 14px;
+    cursor:pointer;
+  }
+
+  .type-tag{
+    display:inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .type-tag.student{ background: var(--sticky-blue); color: #16324f; }
+  .type-tag.college{ background: var(--highlighter); color: #4a3a05; }
+
+  /* ---------- themed back tab (sits under the logo) ---------- */
+  .header-back-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    padding: 5px 12px 5px 10px;
+    background: var(--kraft-dark);
+    border: 1.5px dashed var(--ink-soft);
+    border-radius: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transform: rotate(-1deg);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .header-back-btn:hover{
+    background: var(--ink);
+    color: var(--kraft);
+    border-color: var(--ink);
+  }
+  .header-back-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+  .header-back-btn .arrow{ font-size: 13px; }
+
+  /* ---------- header top row + hamburger (top-right) ---------- */
+  .header-top-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+  }
+  .header-btn-group{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    flex-shrink:0;
+  }
+  .hamburger-btn{
+    width: 38px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1.5px solid var(--ink);
+    background: var(--card);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 4px;
+    cursor:pointer;
+    box-shadow: 0 4px 10px var(--shadow);
+    flex-shrink:0;
+  }
+  .hamburger-btn span{
+    width: 18px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+  .hamburger-btn:hover{ background: var(--kraft-dark); }
+  .hamburger-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  /* ---------- notification bell button (top-right, left of hamburger) ---------- */
+  .notif-btn{
+    width: 38px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1.5px solid var(--ink);
+    background: var(--card);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow: 0 4px 10px var(--shadow);
+    flex-shrink:0;
+    position: relative;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .notif-btn:hover{ background: var(--kraft-dark); }
+  .notif-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+  .notif-badge-dot{
+    position:absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    border-radius:50%;
+    background:#d64545;
+    box-shadow: 0 0 0 2px var(--kraft);
+  }
+
+  /* ---------- notification dropdown panel ---------- */
+  .notif-overlay{
+    position:absolute;
+    inset:0;
+    z-index: 55;
+    pointer-events:none;
+  }
+  .notif-overlay.open{ pointer-events:auto; }
+  .notif-backdrop{
+    position:absolute;
+    inset:0;
+    background: transparent;
+  }
+  .notif-panel{
+    position:absolute;
+    top: 78px;
+    right: 16px;
+    left: 16px;
+    max-height: 62%;
+    overflow-y:auto;
+    background: var(--kraft);
+    border: 2px solid var(--cork-dark);
+    border-radius: 14px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.32);
+    padding: 14px;
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+  }
+  .notif-overlay.open .notif-panel{
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .notif-panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 10px;
+  }
+  .notif-panel-title{
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight:700;
+  }
+  .notif-item{
+    display:flex;
+    gap: 10px;
+    align-items:flex-start;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: var(--card);
+    box-shadow: 0 4px 10px var(--shadow);
+    cursor:pointer;
+    text-align:left;
+    border: none;
+    width: 100%;
+    font-family: inherit;
+    color: inherit;
+  }
+  .notif-item:last-child{ margin-bottom:0; }
+  .notif-item.unread{ box-shadow: 0 4px 10px var(--shadow), inset 3px 0 0 #c65b3f; }
+  .notif-item-icon{
+    font-size: 17px;
+    flex-shrink:0;
+    width: 30px; height:30px;
+    border-radius:50%;
+    background: var(--kraft-dark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .notif-item-title{ font-size: 12.5px; font-weight:700; margin-bottom:2px; }
+  .notif-item-text{ font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-soft); line-height:1.4; }
+  .notif-item-time{ font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-soft); margin-top:4px; opacity:0.8; }
+
+  /* ---------- side dashboard drawer ---------- */
+  .menu-overlay{
+    position:absolute;
+    inset:0;
+    z-index: 40;
+    pointer-events:none;
+  }
+  .menu-overlay.open{ pointer-events:auto; }
+  .menu-backdrop{
+    position:absolute;
+    inset:0;
+    background: rgba(33,50,77,0);
+    transition: background 0.2s ease;
+  }
+  .menu-overlay.open .menu-backdrop{
+    background: rgba(33,50,77,0.45);
+  }
+  .menu-drawer{
+    position:absolute;
+    top:0; right:0;
+    height:100%;
+    width: 80%;
+    max-width: 280px;
+    background: var(--kraft);
+    border-left: 2px solid var(--cork-dark);
+    box-shadow: -10px 0 26px rgba(0,0,0,0.32);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    display:flex;
+    flex-direction:column;
+    padding: 22px 14px 16px;
+    overflow-y:auto;
+  }
+  .menu-overlay.open .menu-drawer{ transform: translateX(0); }
+
+  .menu-drawer-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 16px;
+  }
+  .menu-drawer-title{
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight:700;
+  }
+  .menu-close-btn{
+    width: 28px; height:28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .menu-close-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  .menu-actions{
+    display:flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .menu-action-btn{
+    flex:1;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 6px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow: 0 4px 10px var(--shadow);
+  }
+  .menu-action-btn .maa-icon{ font-size: 18px; }
+  .menu-action-btn.sell{ background: var(--highlighter); color:#4a3a05; }
+  .menu-action-btn.rent{ background: var(--sticky-blue); color:#16324f; }
+  .menu-action-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  .menu-drawer .card{ padding: 10px 10px 9px; margin-bottom: 10px; }
+  .menu-drawer .seller-name{ font-size: 12px; }
+  .menu-drawer .item-meta{ font-size: 10px; }
+
+  /* ---------- theme toggle switch (in menu item list) ---------- */
+  .theme-switch{
+    width: 40px;
+    height: 22px;
+    border-radius: 12px;
+    background: var(--line);
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: background 0.15s;
+  }
+  .theme-switch.on{ background: var(--ink); }
+  .theme-switch-knob{
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--card);
+    position: absolute;
+    top: 2px; left: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: transform 0.15s;
+  }
+  .theme-switch.on .theme-switch-knob{ transform: translateX(18px); }
+
+  /* ---------- clickable avatar (opens profile stats overlay) ---------- */
+  .avatar-clickable{
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .avatar-clickable:hover{ transform: scale(1.06); }
+  .avatar-clickable:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  /* ---------- profile stats overlay (modal) ---------- */
+  .profile-overlay{
+    position:absolute;
+    inset:0;
+    z-index: 60;
+    pointer-events:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .profile-overlay.open{ pointer-events:auto; }
+  .profile-backdrop{
+    position:absolute;
+    inset:0;
+    background: rgba(33,50,77,0);
+    transition: background 0.2s ease;
+  }
+  .profile-overlay.open .profile-backdrop{
+    background: rgba(33,50,77,0.5);
+  }
+  .profile-modal{
+    position: relative;
+    width: 84%;
+    max-width: 290px;
+    background: var(--kraft);
+    border: 2px solid var(--cork-dark);
+    border-radius: 16px;
+    padding: 22px 18px 18px;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+    text-align: center;
+  }
+  .profile-overlay.open .profile-modal{
+    transform: scale(1);
+    opacity: 1;
+  }
+  .profile-modal-close{
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .profile-modal-close:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+  .profile-modal .avatar{
+    width: 56px; height: 56px;
+    font-size: 20px;
+    margin: 0 auto 10px;
+  }
+  .profile-modal-name{
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 700;
+  }
+  .profile-modal-sub{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .profile-modal-stats{
+    text-align: left;
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 4px 10px var(--shadow);
+  }
+
+  /* ---------- photo upload (sell/rent form) ---------- */
+  .photo-upload-box{
+    border: 1.5px dashed var(--ink-soft);
+    border-radius: 10px;
+    padding: 26px 12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 6px;
+    cursor:pointer;
+    background: var(--card);
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align:center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .photo-upload-box:hover{ background: var(--kraft-dark); border-color: var(--ink); }
+  .photo-upload-box:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+  .photo-upload-box .pu-icon{ font-size: 24px; }
+
+  .photo-preview{
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 14px var(--shadow);
+  }
+  .photo-preview img{
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-remove-btn{
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(33,50,77,0.75);
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .photo-remove-btn:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* ---------- reviews ---------- */
+  .star-rating{
+    display:flex;
+    gap: 6px;
+    margin: 4px 0 2px;
+  }
+  .star-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color: var(--line);
+    font-size: 30px;
+    line-height: 1;
+    padding: 0;
+  }
+  .star-btn.filled{ color: var(--highlighter); }
+  .star-btn:focus-visible{ outline: 2px solid #c65b3f; outline-offset: 2px; }
+
+  .review-display{
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin: 8px 0;
+    line-height: 1.5;
+  }
+  .review-stars-mini{ color: var(--highlighter); font-size: 12px; letter-spacing: 1px; }
+
+  /* ---------- level / karma bar ---------- */
+  .level-bar-track{
+    height: 10px;
+    border-radius: 6px;
+    background: var(--line);
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .level-bar-fill{
+    height: 100%;
+    background: var(--ink);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+  }
+
+  /* ---------- borrower reputation chip ---------- */
+  .borrower-chip{
+    display:inline-flex;
+    align-items:center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--kraft-dark);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  /* ---------- guest mode ---------- */
+  .guest-banner{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    background: var(--card);
+    border: 1.5px dashed var(--ink-soft);
+    border-radius: 10px;
+    padding: 7px 10px;
+    margin: 4px 0 10px;
+    text-align: center;
+  }
+  .nav-btn.locked{ opacity: 0.5; }
+  .lock-modal-actions{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+  .lock-modal-actions .btn-primary, .lock-modal-actions .btn-secondary{ margin-top:0; }
+  .guest-divider{
+    text-align:center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin: 14px 0 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="phone">
+    <div class="app-header" id="appHeader"></div>
+    <div id="screen" class="screen"></div>
+    <div class="bottom-nav" id="bottomNav" style="display:none;">
+      <button class="nav-btn" data-nav="search"><span class="nav-icon">🔍</span>SEARCH</button>
+      <button class="nav-btn" data-nav="requests"><span class="nav-icon">📌</span>REQUESTS<span id="reqBadgeDot" class="nav-badge-dot" style="display:none;"></span></button>
+      <button class="nav-btn" data-nav="myitems"><span class="nav-icon">📦</span>ITEMS<span id="itemsBadgeDot" class="nav-badge-dot" style="display:none;"></span></button>
+      <button class="nav-btn" data-nav="profile"><span class="nav-icon">🎓</span>PROFILE</button>
+    </div>
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="profile-overlay" id="profileOverlay"></div>
+    <div class="notif-overlay" id="notifOverlay"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ================= Supabase backend ================= */
+const SUPABASE_URL = 'https://bwshplepnwwbimthbfyb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3c2hwbGVwbnd3YmltdGhiZnliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MDAyNDAsImV4cCI6MjEwNTk3NjI0MH0.fCjBYaKohwBWwcjdaY4sLqs1QkkZBU9aeQG9cq4jroQ';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* console.error(label, errorObject) prints "[object Object]" in most
+   browser consoles instead of anything useful. This pulls out the actual
+   message (and, for a hard network/CORS failure where there's no proper
+   Supabase error shape at all, a plain explanation) so errors are
+   diagnosable from the console alone instead of needing a debugger. */
+function logErr(label, err){
+  if(!err){ console.error(label); return; }
+  const msg = err.message || err.error_description || err.msg
+    || (typeof err === 'string' ? err : null)
+    || (err instanceof TypeError ? 'Network request failed — check your internet connection, or that this page can reach ' + SUPABASE_URL : null)
+    || JSON.stringify(err);
+  console.error(label + ':', msg, err);
+}
+
+const KIND_EMOJI = { book: '📘', notes: '📗', pyq: '📝' };
+
+/* Turns a DB listing row (+ joined seller/renter profile, + seller_stats) into
+   the same shape the existing UI code already expects (see old LISTINGS mock). */
+function mapListingRow(row, statsMap){
+  const seller = row.seller || {};
+  const stats = statsMap.get(row.seller_id) || { rating: 5, verified: 0 };
+  return {
+    id: row.id,
+    kind: row.kind,
+    title: row.title,
+    course: row.course,
+    condition: row.condition,
+    price: row.price_text,
+    free: row.is_free,
+    seller: seller.name || 'Unknown seller',
+    sellerId: row.seller_id,
+    year: seller.year || '',
+    rating: stats.rating,
+    verified: stats.verified,
+    emoji: KIND_EMOJI[row.kind] || '📘',
+    status: row.status,
+    saleType: row.sale_type,
+    rentedTo: row.renter ? row.renter.name : null,
+    rentedToId: row.rented_to,
+    dueDate: row.due_date ? new Date(row.due_date).getTime() : null,
+    photoUrl: row.photo_url,
+  };
+}
+
+/* Fetches every listing + seller/renter names + aggregate seller rating,
+   and repopulates the LISTINGS array in place (keeps every other function
+   in this file working unchanged, since they all read the LISTINGS array). */
+/* Listings and reviews are each split into a "fetch" (network) half and an
+   "apply" (sync, in-memory) half. This lets the app fire several independent
+   reads at once with Promise.all instead of waiting for each one to finish
+   before starting the next — the difference between one round trip and a
+   waterfall of several, which is most of what made guest/login entry slow. */
+async function fetchListingsRaw(){
+  const [{ data: rows, error }, { data: statsRows }] = await Promise.all([
+    sb.from('listings')
+      .select('*, seller:profiles!listings_seller_id_fkey(name,year), renter:profiles!listings_rented_to_fkey(name)')
+      .order('created_at', { ascending: false }),
+    sb.from('seller_stats').select('*'),
+  ]);
+  if(error){ logErr('refreshListings', error); return null; }
+  return { rows, statsRows };
+}
+
+function applyListingsRaw(raw){
+  if(!raw) return;
+  const statsMap = new Map((raw.statsRows||[]).map(s=>[s.seller_id, s]));
+  LISTINGS.length = 0;
+  raw.rows.forEach(r => LISTINGS.push(mapListingRow(r, statsMap)));
+}
+
+async function refreshListings(){
+  applyListingsRaw(await fetchListingsRaw());
+}
+
+async function fetchReviewsRaw(){
+  const { data: rows, error } = await sb
+    .from('reviews')
+    .select('*, reviewer:profiles!reviews_reviewer_id_fkey(name)')
+    .order('created_at', { ascending: true });
+  if(error){ logErr('refreshReviews', error); return null; }
+  return rows;
+}
+
+/* Repopulates the REVIEWS map in place, keyed by listing id — same shape
+   the UI already reads. Needs LISTINGS already populated (applyListingsRaw
+   must run first), since it looks up each listing's seller to filter out
+   the lender's private condition-review of a borrower from this list. */
+function applyReviewsRaw(rows){
+  if(!rows) return;
+  Object.keys(REVIEWS).forEach(k => delete REVIEWS[k]);
+  const sellerOf = new Map(LISTINGS.map(l => [l.id, l.sellerId]));
+  rows.forEach(r=>{
+    if(sellerOf.get(r.listing_id) !== r.reviewee_id) return;
+    if(!REVIEWS[r.listing_id]) REVIEWS[r.listing_id] = [];
+    REVIEWS[r.listing_id].push({
+      reviewer: r.reviewer ? r.reviewer.name : 'Student',
+      rating: r.rating,
+      text: r.text,
+      fromRequestIdx: r.request_id,
+    });
+  });
+}
+
+async function refreshReviews(){
+  applyReviewsRaw(await fetchReviewsRaw());
+}
+
+/* Fetches listings and reviews concurrently (one round trip instead of two),
+   then applies them in the correct order. Used by every "just starting up"
+   path — guest entry and login — instead of awaiting refreshListings() then
+   refreshReviews() one after another. */
+async function refreshListingsAndReviews(){
+  const [listingsRaw, reviewsRaw] = await Promise.all([fetchListingsRaw(), fetchReviewsRaw()]);
+  applyListingsRaw(listingsRaw);
+  applyReviewsRaw(reviewsRaw);
+}
+
+/* Requests I've SENT (I'm the requester) → state.requests, same shape as before */
+/* Split fetch/apply, same reasoning as listings/reviews above: lets the
+   startup path fire this alongside everything else instead of waiting. */
+async function fetchMyRequestsRaw(userId){
+  const { data: rows, error } = await sb
+    .from('requests')
+    .select('*')
+    .eq('requester_id', userId)
+    .order('created_at', { ascending: false });
+  if(error){ logErr('refreshMyRequests', error); return null; }
+  return rows;
+}
+
+function applyMyRequestsRaw(rows){
+  if(!rows) return;
+  state.requests = rows.map(r => ({
+    dbId: r.id,
+    item: LISTINGS.find(l => l.id === r.listing_id) || { id: r.listing_id, title:'(removed listing)', emoji:'📦', seller:'', saleType:'buy', status:'available' },
+    message: r.message,
+    status: r.status,
+    spot: r.spot,
+    time: r.meet_time,
+    review: (REVIEWS[r.listing_id] || []).find(rev => rev.fromRequestIdx === r.id) || null,
+    pickupConfirmed: r.pickup_confirmed,
+  }));
+}
+
+async function refreshMyRequests(){
+  applyMyRequestsRaw(await fetchMyRequestsRaw(state.currentUser.id));
+}
+
+/* Requests I've RECEIVED (I'm the owner) → INCOMING_REQUESTS, same shape as before.
+   Takes an optional userId so the startup path can pass authUser.id directly,
+   without waiting on the profile row just to read state.currentUser.id back out of it. */
+async function refreshIncomingRequests(userId = state.currentUser && state.currentUser.id){
+  const { data: rows, error } = await sb
+    .from('requests')
+    .select('*, requester:profiles!requests_requester_id_fkey(name,year)')
+    .eq('owner_id', userId)
+    .order('created_at', { ascending: false });
+  if(error){ logErr('refreshIncomingRequests', error); return; }
+
+  INCOMING_REQUESTS.length = 0;
+  rows.forEach(r => INCOMING_REQUESTS.push({
+    dbId: r.id,
+    id: r.id,
+    itemId: r.listing_id,
+    requesterId: r.requester_id,
+    requester: r.requester ? r.requester.name : 'Student',
+    requesterYear: r.requester ? r.requester.year : '',
+    message: r.message || '',
+    status: r.status,
+    spot: r.spot,
+    time: r.meet_time,
+  }));
+}
+
+function timeAgo(iso){
+  if(!iso) return '';
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if(mins < 1) return 'Just now';
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.round(mins/60);
+  if(hrs < 24) return hrs + 'h ago';
+  return Math.round(hrs/24) + 'd ago';
+}
+
+async function refreshNotifications(userId = state.currentUser && state.currentUser.id){
+  const { data: rows, error } = await sb
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if(error){ logErr('refreshNotifications', error); return; }
+
+  state.notifications = rows.map(r => ({
+    id: r.id,
+    icon: r.icon || '🔔',
+    title: r.title,
+    text: r.text,
+    action: r.action,
+    read: r.read,
+    time: timeAgo(r.created_at),
+  }));
+}
+
+/* Inserts a notification row for ANOTHER user (e.g. tell the seller you requested their item). */
+async function pushNotification(userId, { icon, title, text, action }){
+  await sb.from('notifications').insert({ user_id: userId, icon, title, text, action });
+}
+
+async function markAllNotificationsRead(){
+  const unreadIds = state.notifications.filter(n=>!n.read).map(n=>n.id);
+  if(unreadIds.length) await sb.from('notifications').update({ read:true }).in('id', unreadIds);
+}
+
+/* Loads the signed-in user's profile row + all their app data, in the shape
+   the rest of the UI already expects. Call after any successful login/signup
+   and once on page load if a session already exists. */
+async function loadCurrentUserAndData(authUser){
+  // authUser.id IS the profile id (profiles.id references auth.users.id,
+  // set by the signup trigger) — so every query below can use it directly
+  // without waiting on the profile row first. That means the profile fetch,
+  // listings, reviews, my requests, incoming requests, and notifications
+  // can all go out on the wire at once instead of one waiting on another.
+  const [
+    { data: profile, error },
+    listingsRaw,
+    reviewsRaw,
+    myRequestsRaw,
+  ] = await Promise.all([
+    sb.from('profiles').select('*').eq('id', authUser.id).single(),
+    fetchListingsRaw(),
+    fetchReviewsRaw(),
+    fetchMyRequestsRaw(authUser.id),
+    refreshIncomingRequests(authUser.id),
+    refreshNotifications(authUser.id),
+  ]);
+  if(error || !profile){ logErr('loadCurrentUserAndData', error); return false; }
+
+  state.currentUser = {
+    id: profile.id,
+    name: profile.name,
+    type: profile.user_type,
+    uniqueId: profile.unique_id,
+    college: profile.college,
+    course: profile.course,
+    year: profile.year,
+    domain: profile.domain,
+    address: profile.address,
+  };
+  state.loggedIn = true;
+
+  // these can only be safely applied once LISTINGS is populated (reviews
+  // and my-requests both look listings up), so they're processed in order
+  // here even though all the network calls above already happened together.
+  applyListingsRaw(listingsRaw);
+  applyReviewsRaw(reviewsRaw);
+  applyMyRequestsRaw(myRequestsRaw);
+  return true;
+}
+
+/* ---------------- mock/local data (kept in-memory; see comments above) ---------------- */
+let LISTINGS = [];
+
+const DUE_DATE_OPTIONS = [
+  { days:3, label:'3 days' },
+  { days:7, label:'1 week' },
+  { days:14, label:'2 weeks' },
+  { days:30, label:'1 month' },
+];
+
+const SPOTS = [
+  { id:'lib', name:'Main Library — Entrance', emoji:'📚' },
+  { id:'canteen', name:'Canteen — Near Counter 2', emoji:'🍔' },
+  { id:'gate', name:'Hostel Gate', emoji:'🏠' },
+  { id:'block', name:'Academic Block Lobby', emoji:'🏛️' },
+];
+
+/* incoming requests — other students requesting items *you* have listed.
+   Populated live from Supabase by refreshIncomingRequests(). */
+let INCOMING_REQUESTS = [];
+
+/* reviews left by other students on an item, keyed by listing id.
+   Populated live from Supabase by refreshReviews(). */
+let REVIEWS = {};
+
+function getItemReviews(itemId){
+  return REVIEWS[itemId] || [];
+}
+
+function getAverageRating(itemId){
+  const revs = getItemReviews(itemId);
+  if(!revs.length) return null;
+  return revs.reduce((sum, r) => sum + r.rating, 0) / revs.length;
+}
+
+/* adds or updates the current user's review for an item, tied to the request that
+   generated it, and persists it to Supabase (reviews table, one row per request). */
+async function upsertItemReview(itemId, requestDbId, revieweeId, rating, text){
+  if(!REVIEWS[itemId]) REVIEWS[itemId] = [];
+  const list = REVIEWS[itemId];
+  const existingIdx = list.findIndex(r => r.fromRequestIdx === requestDbId);
+  const entry = {
+    reviewer: (state.currentUser && state.currentUser.name) ? state.currentUser.name : 'You',
+    rating,
+    text,
+    fromRequestIdx: requestDbId,
+  };
+  if(existingIdx >= 0){ list[existingIdx] = entry; }
+  else { list.push(entry); }
+
+  if(requestDbId){
+    const { error } = await sb.from('reviews').upsert({
+      listing_id: itemId,
+      request_id: requestDbId,
+      reviewer_id: state.currentUser.id,
+      reviewee_id: revieweeId,
+      rating,
+      text,
+    }, { onConflict: 'request_id,reviewer_id' });
+    if(error) logErr('upsertItemReview', error);
+    await refreshListings(); // seller_stats (avg rating) may have changed
+  }
+}
+
+/* ---------- karma / level system ----------
+   Score moves up or down based on:
+   1) reviews other students leave on items this person has listed
+   2) reviews lenders leave on how this person returned items they borrowed
+*/
+function computeKarma(){
+  let score = 50; // base score
+
+  Object.values(REVIEWS).forEach(list=>{
+    list.forEach(r=>{
+      score += (r.rating - 3) * 3; // 5★:+6  4★:+3  3★:0  2★:-3  1★:-6
+    });
+  });
+
+  return Math.max(0, Math.min(100, score));
+}
+
+function getLevelInfo(score){
+  if(score < 20) return { level:1, name:'New Trader', emoji:'🌱', floor:0, ceil:20 };
+  if(score < 40) return { level:2, name:'Trusted Peer', emoji:'🙂', floor:20, ceil:40 };
+  if(score < 60) return { level:3, name:'Reliable Trader', emoji:'⭐', floor:40, ceil:60 };
+  if(score < 80) return { level:4, name:'Campus Star', emoji:'🏅', floor:60, ceil:80 };
+  return { level:5, name:'S2S Legend', emoji:'👑', floor:80, ceil:100 };
+}
+
+/* reviews a seller leaves about the person who borrowed one of their rented-out items */
+const CONDITION_REVIEWS = {};
+
+function getConditionReview(itemId){
+  return CONDITION_REVIEWS[itemId] || null;
+}
+
+async function setConditionReview(itemId, rating, text){
+  CONDITION_REVIEWS[itemId] = { rating, text };
+  const item = LISTINGS.find(l=>l.id===itemId);
+  const req = INCOMING_REQUESTS.find(r => r.itemId === itemId && r.status === 'accepted');
+  if(item && req && item.rentedToId){
+    const { error } = await sb.from('reviews').upsert({
+      listing_id: itemId,
+      request_id: req.id,
+      reviewer_id: state.currentUser.id,
+      reviewee_id: item.rentedToId,
+      rating,
+      text,
+    }, { onConflict: 'request_id,reviewer_id' });
+    if(error) logErr('setConditionReview', error);
+  }
+}
+
+/* Completed rentals — once a lender gets an item back, that rental (and any
+   condition review left on it) is archived here so the borrower keeps the
+   reputation credit even after the item itself becomes available again and
+   might later go out to a completely different person. */
+let RENTAL_HISTORY = [];
+
+/* returns the index of the most recently archived rental record for a given
+   item, or -1 if that item has never been returned. Used so a lender can
+   still find (and review, or edit their review of) the last borrower even
+   after the item has already been marked returned and freed up again. */
+function getLastRentalRecordIndex(itemId){
+  for(let i = RENTAL_HISTORY.length - 1; i >= 0; i--){
+    if(RENTAL_HISTORY[i].itemId === itemId) return i;
+  }
+  return -1;
+}
+
+/* lender gets their item back: frees the listing up again, and archives the
+   just-finished rental (with whatever condition review exists) into history
+   before clearing the item's live rented-state. This is the only thing that
+   actually completes a rental — it's called once the LENDER confirms the
+   item is back, whether they noticed it themselves or a borrower's return
+   claim (see below) was confirmed. Persists the freed-up listing and the
+   completed request to Supabase, and notifies the borrower. */
+async function markItemReturned(itemId){
+  const item = LISTINGS.find(l=>l.id===itemId);
+  if(!item || item.status !== 'rented') return;
+  const cond = getConditionReview(itemId);
+  RENTAL_HISTORY.push({
+    itemId,
+    borrowerName: item.rentedTo || null,
+    rating: cond ? cond.rating : null,
+    text: cond ? cond.text : null,
+  });
+  delete CONDITION_REVIEWS[itemId];
+  const borrowerId = item.rentedToId;
+  item.status = 'available';
+  item.rentedTo = null;
+  item.rentedToId = null;
+  item.dueDate = null;
+  item.returnPending = false;
+
+  await sb.from('listings').update({ status:'available', rented_to:null, due_date:null }).eq('id', itemId);
+
+  const req = INCOMING_REQUESTS.find(r => r.itemId === itemId && r.status === 'accepted');
+  if(req){
+    await sb.from('requests').update({ status:'returned', return_pending:false }).eq('id', req.id);
+    req.status = 'returned';
+  }
+  if(borrowerId){
+    await pushNotification(borrowerId, {
+      icon: '✅',
+      title: 'Return confirmed',
+      text: `${item.emoji} ${item.title} — thanks for returning it!`,
+      action: { view:'requests', tab:'sent' },
+    });
+  }
+}
+
+/* Borrower says they've handed the item back. This does NOT free the
+   listing on its own — it just raises a flag the lender has to confirm,
+   so a borrower can't unilaterally close out a rental (and their
+   reputation credit) without the lender actually having it in hand.
+   Persists the flag on the request row and notifies the lender. */
+async function claimItemReturned(itemId, requestDbId){
+  const item = LISTINGS.find(l=>l.id===itemId);
+  if(!item || item.status !== 'rented') return;
+  item.returnPending = true;
+  if(requestDbId){
+    await sb.from('requests').update({ return_pending:true }).eq('id', requestDbId);
+  }
+  if(item.sellerId){
+    await pushNotification(item.sellerId, {
+      icon: '📦',
+      title: 'Item return claimed',
+      text: `${state.currentUser.name} says they've returned ${item.emoji} ${item.title}`,
+      action: { view:'myitems' },
+    });
+  }
+}
+
+/* Lender says the borrower's claim above isn't true — clears the flag,
+   the item stays rented (and overdue, if it already was). Persists the
+   cleared flag and notifies the borrower. */
+async function disputeItemReturn(itemId){
+  const item = LISTINGS.find(l=>l.id===itemId);
+  if(!item) return;
+  item.returnPending = false;
+  const req = INCOMING_REQUESTS.find(r => r.itemId === itemId && r.status === 'accepted');
+  if(req){
+    await sb.from('requests').update({ return_pending:false }).eq('id', req.id);
+  }
+  if(item.rentedToId){
+    await pushNotification(item.rentedToId, {
+      icon: '❗',
+      title: 'Return not confirmed yet',
+      text: `${state.currentUser.name} says they haven't received ${item.emoji} ${item.title} back yet`,
+      action: { view:'requests', tab:'sent' },
+    });
+  }
+}
+
+/* a borrower's own reputation, built from every condition review ever left
+   about items rented to them — both past, completed rentals (history) and
+   any item still currently out to them. */
+function getBorrowerScore(borrowerName){
+  let score = 50;
+  RENTAL_HISTORY.forEach(rec=>{
+    if(rec.borrowerName === borrowerName && rec.rating){
+      score += (rec.rating - 3) * 3;
+    }
+  });
+  LISTINGS.forEach(item=>{
+    if(item.status === 'rented' && item.rentedTo === borrowerName){
+      const cond = getConditionReview(item.id);
+      if(cond) score += (cond.rating - 3) * 3;
+    }
+  });
+  return Math.max(0, Math.min(100, score));
+}
+
+/* small inline chip showing a borrower's level, used anywhere a borrower's name appears */
+function borrowerChipHtml(borrowerName){
+  if(!borrowerName) return '';
+  const lvl = getLevelInfo(getBorrowerScore(borrowerName));
+  return `<span class="borrower-chip">${lvl.emoji} Lv.${lvl.level}</span>`;
+}
+
+/* marks a listing as completed (sold / rented) once a real meetup has been
+   arranged for it, and records who the item now belongs to / is lent to.
+   This is the single place that flips a listing out of "available" so the
+   Request → Accept → Meetup flow actually has a visible, lasting effect
+   across Search, My Items, and the reputation system. For rentals, an
+   optional dueDate (ms timestamp) records when the item is expected back. */
+async function completeItemTransaction(item, borrowerName, borrowerId, dueDate){
+  if(!item) return;
+  if(item.saleType === 'rent'){
+    item.status = 'rented';
+    if(borrowerName) item.rentedTo = borrowerName;
+    item.rentedToId = borrowerId || null;
+    item.dueDate = dueDate || null;
+  } else {
+    item.status = 'sold';
+    if(borrowerName) item.rentedTo = borrowerName; // kept for consistency/reputation lookups
+    item.rentedToId = borrowerId || null;
+  }
+  const { error } = await sb.from('listings').update({
+    status: item.status,
+    rented_to: borrowerId || null,
+    due_date: dueDate ? new Date(dueDate).toISOString() : null,
+  }).eq('id', item.id);
+  if(error) logErr('completeItemTransaction', error);
+}
+
+/* ---------- due date helpers ---------- */
+function isOverdue(item){
+  return item.status === 'rented' && !!item.dueDate && Date.now() > item.dueDate;
+}
+
+function formatDueDate(ts){
+  return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+function daysOverdue(ts){
+  return Math.max(1, Math.ceil((Date.now() - ts) / 86400000));
+}
+
+function daysUntilDue(ts){
+  return Math.max(0, Math.ceil((ts - Date.now()) / 86400000));
+}
+
+function anyOverdueItems(){
+  // Same scoping bug as My Items: this drives the nav badge for "one of
+  // MY listings is overdue", so it must only look at listings I own.
+  if(!state.currentUser) return false;
+  return LISTINGS.some(l => l.sellerId === state.currentUser.id && isOverdue(l));
+}
+
+function getBorrowerRentalCount(name){
+  const past = RENTAL_HISTORY.filter(r => r.borrowerName === name).length;
+  const active = LISTINGS.filter(l => l.status === 'rented' && l.rentedTo === name).length;
+  return past + active;
+}
+
+/* Due-date / overdue note for a live rental — shared by the lender's
+   My Items view and the borrower's My Requests / Items Borrowed views,
+   so this status is only ever visible to those two people, never to
+   other students browsing Search or a listing's Detail page. */
+function dueStatusHtml(item){
+  if(item.status !== 'rented' || !item.dueDate) return '';
+  return isOverdue(item)
+    ? `<div class="due-note overdue">⚠️ Overdue by ${daysOverdue(item.dueDate)} day${daysOverdue(item.dueDate)>1?'s':''} — was due ${formatDueDate(item.dueDate)}</div>`
+    : `<div class="due-note">Due back ${formatDueDate(item.dueDate)} (${daysUntilDue(item.dueDate)} day${daysUntilDue(item.dueDate)!==1?'s':''} left)</div>`;
+}
+
+/* ---------------- state ---------------- */
+let state = {
+  view: 'login',   // login | signup-choose | signup-student | signup-college | signup-success
+                    // search | detail | meet | success | requests | profile
+  loggedIn: false,
+  currentUser: null,
+  isGuest: false,
+
+  loginId: '',
+  loginPassword: '',
+  loginError: '',
+
+  signupType: null,   // 'student' | 'college'
+  form: {},
+  formError: '',
+
+  activeTab: 'all',
+  courseFilter: 'all',   // 'all' or a specific course name
+  saleTypeFilter: 'all', // 'all' | 'buy' | 'rent'
+  query: '',
+  selectedItem: null,
+  message: '',
+  requests: [], // loaded live from Supabase (refreshMyRequests) after login
+  requestsTab: 'sent', // 'sent' | 'received'
+  activeRequestIdx: null,
+  activeIncomingRequestId: null,
+  selectedSpot: null,
+  selectedTime: '4:00 PM',
+  selectedDueDays: 7,
+  reviewRating: 0,
+  reviewText: '',
+  returnRating: 0,
+  returnText: '',
+  activeReviewItemId: null,
+  myItemsFilter: 'all', // 'all' | 'available' | 'rented' | 'sold'
+  myItemsCategoryFilter: 'all', // 'all' | 'book' | 'notes' | 'pyq'
+  myItemsSaleTypeFilter: 'all', // 'all' | 'buy' | 'rent'
+
+  menuOpen: false,
+  viewedProfile: null,
+  searchHistory: [],
+  theme: 'light',   // 'light' | 'dark'
+
+  detailOrigin: 'search',   // where the detail screen was opened from: 'search' | 'myitems'
+  reviewOrigin: 'requests', // where the review screens were opened from: 'requests' | 'borrowed'
+
+  notifOpen: false,
+  notifications: [],
+};
+
+/* ---------------- notifications ---------------- */
+let notifIdCounter = 1;
+
+/* Pushes a new notification to the top of the list (unread by default). */
+function addNotification({ icon, title, text, action }){
+  state.notifications.unshift({
+    id: notifIdCounter++,
+    icon: icon || '🔔',
+    title,
+    text,
+    action: action || null,
+    read: false,
+    time: 'Just now',
+  });
+}
+
+function unreadNotificationCount(){
+  return state.notifications.filter(n=>!n.read).length;
+}
+
+function toggleNotifPanel(){
+  state.notifOpen = !state.notifOpen;
+  if(state.notifOpen){
+    state.notifications.forEach(n=> n.read = true);
+    markAllNotificationsRead();
+  }
+  renderNotifPanel();
+  renderHeader();
+}
+
+function closeNotifPanel(){
+  state.notifOpen = false;
+  renderNotifPanel();
+  renderHeader();
+}
+
+function handleNotifClick(notif){
+  closeNotifPanel();
+  if(!notif.action) return;
+  if(notif.action.view === 'requests'){
+    state.requestsTab = notif.action.tab || 'sent';
+  }
+  setView(notif.action.view);
+}
+
+/* Notifications now live in Supabase and are loaded per-user by
+   refreshNotifications() (called from loadCurrentUserAndData, right after
+   login/signup) — nothing to seed here at script-load time any more. */
+
+const screenEl = document.getElementById('screen');
+const bottomNav = document.getElementById('bottomNav');
+const appHeader = document.getElementById('appHeader');
+const menuOverlay = document.getElementById('menuOverlay');
+const profileOverlay = document.getElementById('profileOverlay');
+const notifOverlay = document.getElementById('notifOverlay');
+
+/* ---------- guest mode ----------
+   A guest is someone browsing without an account. They can search, filter, open listings,
+   read reviews and see lister stats. Everything that writes (request, sell, rent, review,
+   meetups, my items, notifications) needs a real login. The database enforces this too:
+   the 'anon' role only has SELECT policies. */
+function isGuest(){ return state.isGuest && !state.currentUser; }
+
+const GUEST_LOCKED_VIEWS = ['requests','myitems','sell','rent','review','itemBorrowerReview','meet','meetIncoming','success','successIncoming','borrowed','myItemsFilters'];
+const GUEST_LOCK_TEXT = {
+  sell: 'sell items',
+  rent: 'rent out items',
+  requests: 'request items and track your requests',
+  myitems: 'manage your listings',
+  request: 'request an item',
+  borrowed: 'see borrowed items',
+  review: 'leave reviews',
+};
+
+function setView(v){
+  if(isGuest() && GUEST_LOCKED_VIEWS.includes(v)){
+    showLoginRequired(GUEST_LOCK_TEXT[v] || 'do that');
+    return;
+  }
+  state.view = v;
+  render();
+}
+
+function closeLoginRequired(){
+  profileOverlay.className = 'profile-overlay';
+  profileOverlay.innerHTML = '';
+}
+
+function showLoginRequired(what){
+  state.menuOpen = false;
+  renderMenuDrawer();
+  profileOverlay.className = 'profile-overlay open';
+  profileOverlay.innerHTML = `
+    <div class="profile-backdrop" id="lockBackdrop"></div>
+    <div class="profile-modal fade-in">
+      <button class="profile-modal-close" id="lockCloseBtn" aria-label="Close">✕</button>
+      <div class="avatar">🔒</div>
+      <div class="profile-modal-name">Log in to continue</div>
+      <div class="profile-modal-sub">You're browsing as a guest. Log in or create a free account to ${what}.</div>
+      <div class="lock-modal-actions">
+        <button class="btn-primary" id="lockLoginBtn">Log in</button>
+        <button class="btn-secondary" id="lockSignupBtn">Create account</button>
+      </div>
+    </div>
+  `;
+  profileOverlay.querySelector('#lockBackdrop').addEventListener('click', closeLoginRequired);
+  profileOverlay.querySelector('#lockCloseBtn').addEventListener('click', closeLoginRequired);
+  profileOverlay.querySelector('#lockLoginBtn').addEventListener('click', ()=> leaveGuest('login'));
+  profileOverlay.querySelector('#lockSignupBtn').addEventListener('click', ()=> leaveGuest('signup-choose'));
+}
+
+/* drops the guest session and sends them to an auth screen */
+function leaveGuest(view){
+  closeLoginRequired();
+  state.isGuest = false;
+  state.loggedIn = false;
+  state.currentUser = null;
+  state.notifOpen = false;
+  state.menuOpen = false;
+  LISTINGS.length = 0;
+  Object.keys(REVIEWS).forEach(k => delete REVIEWS[k]);
+  state.loginId = '';
+  state.loginPassword = '';
+  state.loginError = '';
+  setView(view);
+}
+
+async function enterGuest(){
+  state.isGuest = true;
+  state.currentUser = null;
+  state.loggedIn = true;
+  state.requests = [];
+  INCOMING_REQUESTS.length = 0;
+  state.notifications = [];
+  await refreshListingsAndReviews();
+  state.view = 'search';
+  render();
+}
+
+function applyTheme(){
+  const phone = document.querySelector('.phone');
+  if(phone) phone.setAttribute('data-theme', state.theme);
+}
+
+function toggleTheme(){
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  applyTheme();
+  renderMenuDrawer();
+}
+
+function enterApp(){
+  state.isGuest = false;
+  state.loggedIn = true;
+  setView('search');
+}
+
+/* which view the global top-left button should go to from each screen */
+function getBackTarget(){
+  switch(state.view){
+    case 'signup-choose': return 'login';
+    case 'signup-student': return 'signup-choose';
+    case 'signup-college': return 'signup-choose';
+    case 'detail': return state.detailOrigin || 'search';
+    case 'meet': return 'requests';
+    case 'success': return 'requests';
+    case 'meetIncoming': return 'requests';
+    case 'successIncoming': return 'requests';
+    case 'sell': return 'search';
+    case 'rent': return 'search';
+    case 'filters': return 'search';
+    case 'history': return 'search';
+    case 'borrowed': return 'profile';
+    case 'review': return state.reviewOrigin || 'requests';
+    case 'itemBorrowerReview': return 'myitems';
+    case 'myItemsFilters': return 'myitems';
+    default: return null; // login, signup-success, search, requests, profile — no global back
+  }
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function statusLabelText(status){
+  if(status==='rented') return 'Rented';
+  if(status==='sold') return 'Sold out';
+  return 'Available';
+}
+function statusRowHtml(status){
+  return `<div class="status-row"><span class="status-dot ${status}"></span><span class="status-label ${status}">${statusLabelText(status)}</span></div>`;
+}
+
+/* ---------------- unique ID generator ---------------- */
+function generateUniqueId(type){
+  const prefix = type === 'student' ? 'S2S-STU' : 'S2S-COL';
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
+  let code = '';
+  for(let i=0;i<6;i++){ code += chars[Math.floor(Math.random()*chars.length)]; }
+  return `${prefix}-${code}`;
+}
+
+/* ================= RENDER ROUTER ================= */
+function renderHeader(){
+  const backTarget = getBackTarget();
+  const authViews = ['login','signup-choose','signup-student','signup-college','signup-success'];
+  const showHeaderIcons = state.loggedIn && !authViews.includes(state.view);
+  const unread = unreadNotificationCount();
+
+  appHeader.innerHTML = `
+    <div class="header-top-row">
+      <div class="brand">
+        <span class="brand-mark">S<span class="accent">2</span>S</span>
+      </div>
+      ${showHeaderIcons ? `
+        <div class="header-btn-group">
+          ${isGuest() ? '' : `<button class="notif-btn" id="notifBtn" aria-label="Notifications">
+            🔔
+            ${unread > 0 ? `<span class="notif-badge-dot"></span>` : ''}
+          </button>`}
+          <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu"><span></span><span></span><span></span></button>
+        </div>
+      ` : ''}
+    </div>
+    <div class="brand-tag">STUDENT TO STUDENT · NOTES &amp; BOOKS</div>
+    ${backTarget ? `<button class="header-back-btn" id="headerBackBtn"><span class="arrow">←</span>Back</button>` : ''}
+  `;
+  if(backTarget){
+    appHeader.querySelector('#headerBackBtn').addEventListener('click', ()=> setView(backTarget));
+  }
+  if(showHeaderIcons){
+    appHeader.querySelector('#hamburgerBtn').addEventListener('click', ()=>{
+      state.menuOpen = true;
+      renderMenuDrawer();
+    });
+    const notifBtnEl = appHeader.querySelector('#notifBtn');
+    if(notifBtnEl) notifBtnEl.addEventListener('click', toggleNotifPanel);
+  }
+}
+
+function render(){
+  renderCore();
+  const authViewsList = ['login','signup-choose','signup-student','signup-college','signup-success'];
+  if(isGuest() && !authViewsList.includes(state.view) && state.view !== 'profile'){
+    screenEl.insertAdjacentHTML('afterbegin', `<div class="guest-banner">👀 Browsing as guest · <button class="link-text" id="guestLoginLink">Log in</button> for full access</div>`);
+    screenEl.querySelector('#guestLoginLink').addEventListener('click', ()=> leaveGuest('login'));
+  }
+}
+
+function renderCore(){
+  applyTheme();
+  const authViews = ['login','signup-choose','signup-student','signup-college','signup-success'];
+  const inAuth = authViews.includes(state.view);
+
+  bottomNav.style.display = inAuth ? 'none' : 'flex';
+  screenEl.classList.toggle('no-nav-pad', inAuth);
+
+  renderHeader();
+
+  if(!inAuth){
+    document.querySelectorAll('.nav-btn').forEach(b=>{
+      const nav = b.dataset.nav;
+      const active = (nav==='search' && (['search','meet','success','sell','rent','filters','history'].includes(state.view) || (state.view==='detail' && state.detailOrigin!=='myitems'))) ||
+                     (nav==='requests' && (['requests','meetIncoming','successIncoming'].includes(state.view) || (state.view==='review' && state.reviewOrigin!=='borrowed'))) ||
+                     (nav==='myitems' && (['myitems','itemBorrowerReview','myItemsFilters'].includes(state.view) || (state.view==='detail' && state.detailOrigin==='myitems'))) ||
+                     (nav==='profile' && (state.view==='profile' || state.view==='borrowed' || (state.view==='review' && state.reviewOrigin==='borrowed')));
+      b.classList.toggle('active', active);
+      b.classList.toggle('locked', isGuest() && (nav==='requests' || nav==='myitems'));
+    });
+    const reqBadge = document.getElementById('reqBadgeDot');
+    if(reqBadge){
+      const pendingIncoming = INCOMING_REQUESTS.filter(r=>r.status==='pending').length;
+      reqBadge.style.display = pendingIncoming > 0 ? 'block' : 'none';
+    }
+    const itemsBadge = document.getElementById('itemsBadgeDot');
+    if(itemsBadge){
+      itemsBadge.style.display = anyOverdueItems() ? 'block' : 'none';
+    }
+  }
+
+  // These three overlays must refresh on EVERY render, not just non-auth
+  // screens — otherwise navigating to an auth view (e.g. logging out while
+  // the menu is open) leaves their last rendered state stuck on screen,
+  // fully blocking the login/signup form underneath even though the app's
+  // own state correctly says they're closed.
+  renderMenuDrawer();
+  renderProfileOverlay();
+  renderNotifPanel();
+
+  if(state.view==='login') return renderLogin();
+  if(state.view==='signup-choose') return renderSignupChoose();
+  if(state.view==='signup-student') return renderSignupStudent();
+  if(state.view==='signup-college') return renderSignupCollege();
+  if(state.view==='signup-success') return renderSignupSuccess();
+
+  if(state.view==='search') return renderSearch();
+  if(state.view==='detail') return renderDetail();
+  if(state.view==='meet') return renderMeet();
+  if(state.view==='success') return renderSuccess();
+  if(state.view==='meetIncoming') return renderMeetIncoming();
+  if(state.view==='successIncoming') return renderSuccessIncoming();
+  if(state.view==='requests') return renderRequests();
+  if(state.view==='myitems') return renderMyItems();
+  if(state.view==='profile') return renderProfile();
+  if(state.view==='sell') return renderSell();
+  if(state.view==='rent') return renderRent();
+  if(state.view==='filters') return renderFilters();
+  if(state.view==='history') return renderHistory();
+  if(state.view==='borrowed') return renderBorrowed();
+  if(state.view==='review') return renderReview();
+  if(state.view==='itemBorrowerReview') return renderItemBorrowerReview();
+  if(state.view==='myItemsFilters') return renderMyItemsFilters();
+}
+
+/* ================= AUTH: LOGIN ================= */
+function renderLogin(){
+  screenEl.innerHTML = `
+    <div class="auth-screen fade-in">
+      <div class="auth-logo">
+        <div class="brand-mark">S<span class="accent">2</span>S</div>
+        <div class="brand-tag">STUDENT TO STUDENT · NOTES &amp; BOOKS</div>
+      </div>
+
+      <div class="auth-toggle">
+        <button class="active" id="toLogin">LOG IN</button>
+        <button id="toSignup">SIGN UP</button>
+      </div>
+
+      <label class="field-label">UNIQUE ID OR EMAIL</label>
+      <input type="text" id="loginId" placeholder="e.g. S2S-STU-4F82A1 or you@college.edu" value="${escapeHtml(state.loginId)}" />
+
+      <label class="field-label">PASSWORD</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" value="${escapeHtml(state.loginPassword)}" />
+
+      ${state.loginError ? `<div class="field-error">${state.loginError}</div>` : ''}
+
+      <button class="btn-primary" id="loginBtn">Log in</button>
+
+      ${state.guestError ? `<div class="field-error">${state.guestError}</div>` : ''}
+
+      <div class="center-note">
+        <span class="helper-text">New to S2S? <button class="link-text" id="goSignup">Create an account →</button></span>
+      </div>
+
+      <div class="guest-divider">— OR —</div>
+      <button class="btn-secondary" id="guestBtn" style="margin-top:0;">👀 Continue as guest</button>
+      <div class="helper-text" style="text-align:center;margin-top:6px;">Browse listings only. Log in to request, sell, rent or review.</div>
+    </div>
+  `;
+
+  screenEl.querySelector('#toSignup').addEventListener('click', ()=> setView('signup-choose'));
+  screenEl.querySelector('#goSignup').addEventListener('click', ()=> setView('signup-choose'));
+  screenEl.querySelector('#guestBtn').addEventListener('click', async ()=>{
+    const gb = screenEl.querySelector('#guestBtn');
+    gb.disabled = true;
+    gb.textContent = 'Loading…';
+    state.guestError = '';
+    try{
+      await enterGuest();
+    } catch(err){
+      logErr('enterGuest', err);
+      state.isGuest = false;
+      state.loggedIn = false;
+      state.guestError = 'Could not start guest browsing — check your connection and try again.';
+      render();
+    }
+  });
+  screenEl.querySelector('#loginId').addEventListener('input', e=> state.loginId = e.target.value);
+  screenEl.querySelector('#loginPassword').addEventListener('input', e=> state.loginPassword = e.target.value);
+
+  screenEl.querySelector('#loginBtn').addEventListener('click', async ()=>{
+    if(!state.loginId.trim() || !state.loginPassword.trim()){
+      state.loginError = 'Enter your unique ID (or email) and password.';
+      return render();
+    }
+    state.loginError = '';
+    const loginBtn = screenEl.querySelector('#loginBtn');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in…';
+
+    try{
+    let email = state.loginId.trim();
+    if(!email.includes('@')){
+      // typed a unique ID (e.g. S2S-STU-4F82A1) instead of an email — look up the email for it
+      const { data: foundEmail, error: lookupErr } = await sb.rpc('email_for_unique_id', { uid: email });
+      if(lookupErr || !foundEmail){
+        state.loginError = 'No account found with that ID.';
+        return render();
+      }
+      email = foundEmail;
+    }
+
+    const { error } = await sb.auth.signInWithPassword({ email, password: state.loginPassword });
+    if(error){
+      state.loginError = error.message;
+      return render();
+    }
+
+    const { data: { user } } = await sb.auth.getUser();
+    await loadCurrentUserAndData(user);
+    enterApp();
+  } catch(err){
+    logErr('login', err);
+    state.loginError = 'Something went wrong — check your connection and try again.';
+    render();
+  }
+  });
+}
+
+/* ================= AUTH: SIGNUP — CHOOSE TYPE ================= */
+function renderSignupChoose(){
+  screenEl.innerHTML = `
+    <div class="auth-screen fade-in">
+      <div class="auth-logo">
+        <div class="brand-mark">S<span class="accent">2</span>S</div>
+        <div class="brand-tag">CREATE YOUR ACCOUNT</div>
+      </div>
+
+      <div class="auth-toggle">
+        <button id="toLogin">LOG IN</button>
+        <button class="active" id="toSignup">SIGN UP</button>
+      </div>
+
+      <label class="field-label">REGISTER AS</label>
+
+      <div class="card role-card tilt-l" id="pickStudent">
+        <div class="role-emoji student">🎓</div>
+        <div>
+          <div class="role-title">Student</div>
+          <div class="role-desc">Buy, sell &amp; borrow books and notes on your campus</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </div>
+
+      <div class="card role-card tilt-r" id="pickCollege">
+        <div class="role-emoji college">🏫</div>
+        <div>
+          <div class="role-title">College / Institution</div>
+          <div class="role-desc">Register your campus so students can join under it</div>
+        </div>
+        <div class="role-arrow">→</div>
+      </div>
+    </div>
+  `;
+
+  screenEl.querySelector('#toLogin').addEventListener('click', ()=> setView('login'));
+  screenEl.querySelector('#pickStudent').addEventListener('click', ()=>{
+    state.signupType = 'student';
+    state.form = {};
+    state.formError = '';
+    setView('signup-student');
+  });
+  screenEl.querySelector('#pickCollege').addEventListener('click', ()=>{
+    state.signupType = 'college';
+    state.form = {};
+    state.formError = '';
+    setView('signup-college');
+  });
+}
+
+/* ================= AUTH: SIGNUP — STUDENT ================= */
+function renderSignupStudent(){
+  const f = state.form;
+  screenEl.innerHTML = `
+    <div class="auth-screen fade-in" style="padding-top:12px;">
+      <span class="type-tag student">🎓 STUDENT REGISTRATION</span>
+
+      <label class="field-label">FULL NAME</label>
+      <input type="text" id="f_name" placeholder="e.g. Ananya Sharma" value="${escapeHtml(f.name||'')}" />
+
+      <label class="field-label">COLLEGE EMAIL</label>
+      <input type="email" id="f_email" placeholder="you@college.edu" value="${escapeHtml(f.email||'')}" />
+
+      <label class="field-label">COLLEGE / UNIVERSITY NAME</label>
+      <input type="text" id="f_college" placeholder="e.g. Delhi Institute of Technology" value="${escapeHtml(f.college||'')}" />
+
+      <label class="field-label">COURSE / BRANCH</label>
+      <input type="text" id="f_course" placeholder="e.g. B.Tech Computer Science" value="${escapeHtml(f.course||'')}" />
+
+      <label class="field-label">YEAR OF STUDY</label>
+      <select id="f_year">
+        ${['1st year','2nd year','3rd year','4th year'].map(y=>`<option ${f.year===y?'selected':''}>${y}</option>`).join('')}
+      </select>
+
+      <label class="field-label">PASSWORD</label>
+      <input type="password" id="f_password" placeholder="Create a password" value="${escapeHtml(f.password||'')}" />
+
+      ${state.formError ? `<div class="field-error">${state.formError}</div>` : ''}
+
+      <div class="helper-text">You'll get a unique S2S ID (e.g. S2S-STU-4F82A1) once you register — use it to log in or to verify yourself to other students.</div>
+
+      <button class="btn-primary" id="submitBtn">Create student account</button>
+    </div>
+  `;
+
+  ['f_name','f_email','f_college','f_course','f_password'].forEach(id=>{
+    screenEl.querySelector('#'+id).addEventListener('input', e=>{
+      const key = id.replace('f_','');
+      state.form[key] = e.target.value;
+    });
+  });
+  screenEl.querySelector('#f_year').addEventListener('change', e=> state.form.year = e.target.value);
+
+  screenEl.querySelector('#submitBtn').addEventListener('click', async ()=>{
+    const required = ['name','email','college','course','password'];
+    const missing = required.filter(k => !state.form[k] || !state.form[k].trim());
+    if(missing.length){
+      state.formError = 'Please fill in every field before continuing.';
+      return render();
+    }
+    if(!state.form.email.includes('@')){
+      state.formError = 'Enter a valid email address.';
+      return render();
+    }
+    state.formError = '';
+    const btn = screenEl.querySelector('#submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+
+    const { data, error } = await sb.auth.signUp({
+      email: state.form.email.trim(),
+      password: state.form.password,
+      options: {
+        data: {
+          user_type: 'student',
+          name: state.form.name,
+          college: state.form.college,
+          course: state.form.course,
+          year: state.form.year || '1st year',
+        },
+      },
+    });
+    if(error){
+      state.formError = error.message;
+      return render();
+    }
+
+    // the DB trigger auto-creates the profile row; fetch it for the unique ID
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+    state.currentUser = {
+      id: data.user.id,
+      name: profile?.name || state.form.name,
+      type: 'student',
+      uniqueId: profile?.unique_id || '',
+      college: state.form.college,
+      course: state.form.course,
+      year: state.form.year || '1st year',
+    };
+    state.pendingEmailConfirm = !data.session;
+    setView('signup-success');
+  });
+}
+
+/* ================= AUTH: SIGNUP — COLLEGE ================= */
+function renderSignupCollege(){
+  const f = state.form;
+  screenEl.innerHTML = `
+    <div class="auth-screen fade-in" style="padding-top:12px;">
+      <span class="type-tag college">🏫 COLLEGE REGISTRATION</span>
+
+      <label class="field-label">INSTITUTION NAME</label>
+      <input type="text" id="f_college" placeholder="e.g. Delhi Institute of Technology" value="${escapeHtml(f.college||'')}" />
+
+      <label class="field-label">OFFICIAL EMAIL DOMAIN</label>
+      <input type="text" id="f_domain" placeholder="e.g. dit.edu.in" value="${escapeHtml(f.domain||'')}" />
+      <div class="helper-text">Students with this email domain can be auto-verified under your college.</div>
+
+      <label class="field-label">ADMIN CONTACT NAME</label>
+      <input type="text" id="f_admin" placeholder="e.g. Dean of Student Affairs office" value="${escapeHtml(f.admin||'')}" />
+
+      <label class="field-label">ADMIN EMAIL</label>
+      <input type="email" id="f_email" placeholder="admin@college.edu" value="${escapeHtml(f.email||'')}" />
+
+      <label class="field-label">CAMPUS ADDRESS / CITY</label>
+      <input type="text" id="f_address" placeholder="e.g. Rohini, New Delhi" value="${escapeHtml(f.address||'')}" />
+
+      <label class="field-label">PASSWORD</label>
+      <input type="password" id="f_password" placeholder="Create a password" value="${escapeHtml(f.password||'')}" />
+
+      ${state.formError ? `<div class="field-error">${state.formError}</div>` : ''}
+
+      <div class="helper-text">Your college gets a unique S2S ID (e.g. S2S-COL-9K21B7) to manage your campus listing and verify students.</div>
+
+      <button class="btn-primary" id="submitBtn">Register college</button>
+    </div>
+  `;
+
+  ['f_college','f_domain','f_admin','f_email','f_address','f_password'].forEach(id=>{
+    screenEl.querySelector('#'+id).addEventListener('input', e=>{
+      const key = id.replace('f_','');
+      state.form[key] = e.target.value;
+    });
+  });
+
+  screenEl.querySelector('#submitBtn').addEventListener('click', async ()=>{
+    const required = ['college','domain','admin','email','address','password'];
+    const missing = required.filter(k => !state.form[k] || !state.form[k].trim());
+    if(missing.length){
+      state.formError = 'Please fill in every field before continuing.';
+      return render();
+    }
+    if(!state.form.email.includes('@')){
+      state.formError = 'Enter a valid admin email address.';
+      return render();
+    }
+    state.formError = '';
+    const btn = screenEl.querySelector('#submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Registering…';
+
+    const { data, error } = await sb.auth.signUp({
+      email: state.form.email.trim(),
+      password: state.form.password,
+      options: {
+        data: {
+          user_type: 'college',
+          admin_name: state.form.admin,
+          college: state.form.college,
+          domain: state.form.domain,
+          address: state.form.address,
+        },
+      },
+    });
+    if(error){
+      state.formError = error.message;
+      return render();
+    }
+
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+    state.currentUser = {
+      id: data.user.id,
+      name: profile?.name || state.form.admin,
+      type: 'college',
+      uniqueId: profile?.unique_id || '',
+      college: state.form.college,
+      domain: state.form.domain,
+      address: state.form.address,
+    };
+    state.pendingEmailConfirm = !data.session;
+    setView('signup-success');
+  });
+}
+
+/* ================= AUTH: SIGNUP SUCCESS ================= */
+function renderSignupSuccess(){
+  const u = state.currentUser;
+  screenEl.innerHTML = `
+    <div class="auth-screen fade-in success-wrap">
+      <div class="success-mark">🎉</div>
+      <div class="success-title">You're in, ${escapeHtml(u.name.split(' ')[0])}!</div>
+      <div class="item-meta">${u.type==='student' ? 'Your student account is ready' : 'Your college is now registered on S2S'}</div>
+
+      <div class="id-badge">
+        <div class="id-label">YOUR UNIQUE S2S ID</div>
+        <div class="id-value">${u.uniqueId}</div>
+        <button class="id-copy" id="copyIdBtn">Copy ID</button>
+      </div>
+
+      <div class="helper-text" style="text-align:center;">Use this ID to log in next time, or to prove you're a verified ${u.type==='student'?'student':'institution'} to others on campus.</div>
+
+      ${state.pendingEmailConfirm ? `<div class="helper-text" style="text-align:center;">📧 Check your email to confirm your account before logging in.</div>` : ''}
+
+      <button class="btn-primary" id="continueBtn">${state.pendingEmailConfirm ? 'Go to login' : 'Continue to S2S'}</button>
+    </div>
+  `;
+
+  screenEl.querySelector('#copyIdBtn').addEventListener('click', ()=>{
+    const btn = screenEl.querySelector('#copyIdBtn');
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(u.uniqueId).then(()=>{
+        btn.textContent = 'Copied ✓';
+        setTimeout(()=>{ btn.textContent = 'Copy ID'; }, 1500);
+      }).catch(()=>{ btn.textContent = u.uniqueId; });
+    } else {
+      btn.textContent = u.uniqueId;
+    }
+  });
+
+  screenEl.querySelector('#continueBtn').addEventListener('click', async ()=>{
+    if(state.pendingEmailConfirm){
+      state.loggedIn = false;
+      state.currentUser = null;
+      setView('login');
+      return;
+    }
+    // signUp already returned a live session (email confirmation is off) — load real data and go in
+    const { data: { user } } = await sb.auth.getUser();
+    if(user) await loadCurrentUserAndData(user);
+    enterApp();
+  });
+}
+
+/* ================= Screen 1: Search ================= */
+function renderSearch(){
+  const filtered = LISTINGS.filter(l =>
+    (state.activeTab === 'all' ? true : l.kind === state.activeTab) &&
+    (state.courseFilter === 'all' ? true : l.course === state.courseFilter) &&
+    (state.saleTypeFilter === 'all' ? true : l.saleType === state.saleTypeFilter) &&
+    (state.query.trim()==='' || l.title.toLowerCase().includes(state.query.toLowerCase()) || l.course.toLowerCase().includes(state.query.toLowerCase()))
+  );
+
+  const catNames = { all:'All types', book:'Books', notes:'Notes', pyq:'PYQ' };
+  const saleTypeNames = { all:'Buy or rent', buy:'For sale', rent:'For rent' };
+  const courseLabel = state.courseFilter === 'all' ? 'All courses' : state.courseFilter;
+
+  screenEl.innerHTML = `
+    <div class="search-row">
+      <div class="search-box">
+        <span>🔎</span>
+        <input id="searchInput" type="text" placeholder="Search by title or course code" value="${escapeHtml(state.query)}" />
+      </div>
+    </div>
+    <button class="filter-open-btn" id="openFiltersBtn">
+      <span class="fob-left"><span class="fob-icon">🧰</span> Filter</span>
+      <span class="fob-summary">${catNames[state.activeTab]} · ${saleTypeNames[state.saleTypeFilter]} · ${escapeHtml(courseLabel)} <span class="fob-arrow">→</span></span>
+    </button>
+    <div id="results"></div>
+  `;
+
+  const resultsEl = screenEl.querySelector('#results');
+  if(filtered.length===0){
+    resultsEl.innerHTML = `<div class="empty-state"><span class="em">🗒️</span><p>NOTHING MATCHES YET — TRY ANOTHER COURSE CODE</p></div>`;
+  } else {
+    filtered.forEach((item, i)=>{
+      const div = document.createElement('div');
+      div.className = `card fade-in ${i%2===0?'tilt-l':'tilt-r'}`;
+      div.tabIndex = 0;
+      div.setAttribute('role','button');
+      div.innerHTML = `
+        <div class="item-title">${item.emoji} ${item.title}</div>
+        <div class="item-meta">${item.course} · ${item.condition} · ${item.saleType==='rent'?'For rent':'For sale'}</div>
+        <div class="item-bottom">
+          <span class="price ${item.free?'free':''}">${item.price}</span>
+          <div class="item-bottom-right">
+            ${statusRowHtml(item.status)}
+            <span class="badge">✓ Verified by ${item.verified}</span>
+          </div>
+        </div>
+      `;
+      div.addEventListener('click', ()=> openDetail(item, 'search'));
+      div.addEventListener('keypress', e=>{ if(e.key==='Enter') openDetail(item, 'search'); });
+      resultsEl.appendChild(div);
+    });
+  }
+
+  screenEl.querySelector('#searchInput').addEventListener('input', e=>{
+    state.query = e.target.value;
+    render();
+    screenEl.querySelector('#searchInput').focus();
+    screenEl.querySelector('#searchInput').setSelectionRange(state.query.length, state.query.length);
+  });
+  screenEl.querySelector('#searchInput').addEventListener('keypress', e=>{
+    if(e.key==='Enter') addSearchHistory(state.query);
+  });
+  screenEl.querySelector('#openFiltersBtn').addEventListener('click', ()=> setView('filters'));
+}
+
+function addSearchHistory(query){
+  const q = query.trim();
+  if(!q) return;
+  state.searchHistory = state.searchHistory.filter(h => h.toLowerCase() !== q.toLowerCase());
+  state.searchHistory.unshift(q);
+  state.searchHistory = state.searchHistory.slice(0, 15);
+}
+
+function runHistorySearch(query){
+  state.query = query;
+  setView('search');
+}
+
+function openDetail(item, origin){
+  state.selectedItem = item;
+  state.message = '';
+  state.detailOrigin = origin || 'search';
+  setView('detail');
+}
+
+/* ================= Full-screen Filter view ================= */
+function renderFilters(){
+  const categories = [
+    { id:'all', name:'All types', emoji:'🗂️' },
+    { id:'book', name:'Books', emoji:'📘' },
+    { id:'notes', name:'Notes', emoji:'📗' },
+    { id:'pyq', name:'PYQ', emoji:'📝' },
+  ];
+  const saleTypes = [
+    { id:'all', name:'Buy or rent', emoji:'🔀' },
+    { id:'buy', name:'For sale', emoji:'💰' },
+    { id:'rent', name:'For rent', emoji:'🔁' },
+  ];
+  const availableCourses = [...new Set(LISTINGS.filter(l=>l.status==='available').map(l=>l.course))].sort();
+
+  screenEl.innerHTML = `
+    <div class="fade-in" style="margin-top:14px;">
+      <div class="filter-section-title">CATEGORY</div>
+      <div id="filterCategoryList"></div>
+
+      <div class="filter-section-title">BUY OR RENT</div>
+      <div id="filterSaleTypeList"></div>
+
+      <div class="filter-section-title">COURSE</div>
+      <div id="filterCourseList"></div>
+
+      <button class="btn-primary" id="applyFiltersBtn">Apply filters</button>
+    </div>
+  `;
+
+  const catList = screenEl.querySelector('#filterCategoryList');
+  categories.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.activeTab===c.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="filterCat" ${state.activeTab===c.id?'checked':''} />
+      <span class="spot-emoji">${c.emoji}</span>
+      <span class="spot-name">${c.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.activeTab = c.id; renderFilters(); });
+    catList.appendChild(div);
+  });
+
+  const saleTypeList = screenEl.querySelector('#filterSaleTypeList');
+  saleTypes.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.saleTypeFilter===s.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="filterSaleType" ${state.saleTypeFilter===s.id?'checked':''} />
+      <span class="spot-emoji">${s.emoji}</span>
+      <span class="spot-name">${s.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.saleTypeFilter = s.id; renderFilters(); });
+    saleTypeList.appendChild(div);
+  });
+
+  const courseList = screenEl.querySelector('#filterCourseList');
+  const courseOptions = [{ id:'all', name:'All courses', emoji:'📋' }, ...availableCourses.map(c=>({ id:c, name:c, emoji:'🏷️' }))];
+  courseOptions.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.courseFilter===c.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="filterCourse" ${state.courseFilter===c.id?'checked':''} />
+      <span class="spot-emoji">${c.emoji}</span>
+      <span class="spot-name">${escapeHtml(c.name)}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.courseFilter = c.id; renderFilters(); });
+    courseList.appendChild(div);
+  });
+
+  screenEl.querySelector('#applyFiltersBtn').addEventListener('click', ()=> setView('search'));
+}
+
+/* ================= Search history ================= */
+function renderHistory(){
+  screenEl.innerHTML = `<label class="field-label" style="margin-top:14px;">SEARCH HISTORY</label><div id="historyList"></div>`;
+  const list = screenEl.querySelector('#historyList');
+
+  if(state.searchHistory.length===0){
+    list.innerHTML = `<div class="empty-state"><span class="em">🕘</span><p>NO SEARCHES YET — TRY LOOKING UP A COURSE CODE</p></div>`;
+    return;
+  }
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'btn-secondary';
+  clearBtn.style.marginTop = '0';
+  clearBtn.style.marginBottom = '16px';
+  clearBtn.textContent = 'Clear search history';
+  clearBtn.addEventListener('click', ()=>{ state.searchHistory = []; renderHistory(); });
+  list.appendChild(clearBtn);
+
+  state.searchHistory.forEach((q, i)=>{
+    const div = document.createElement('div');
+    div.className = `card fade-in ${i%2===0?'tilt-l':'tilt-r'}`;
+    div.tabIndex = 0;
+    div.setAttribute('role','button');
+    div.innerHTML = `
+      <div class="seller-row" style="box-shadow:none;padding:0;background:transparent;margin-bottom:0;">
+        <div class="avatar" style="background:var(--kraft-dark);color:var(--ink);font-size:14px;width:28px;height:28px;">🕘</div>
+        <div style="flex:1;">
+          <div class="seller-name">${escapeHtml(q)}</div>
+          <div class="item-meta" style="margin-bottom:0;">Tap to search again</div>
+        </div>
+        <div class="role-arrow" style="margin-left:0;">→</div>
+      </div>
+    `;
+    div.addEventListener('click', ()=> runHistorySearch(q));
+    div.addEventListener('keypress', e=>{ if(e.key==='Enter') runHistorySearch(q); });
+    list.appendChild(div);
+  });
+}
+
+/* ================= Screen 2: Detail / Request ================= */
+function renderDetail(){
+  const item = state.selectedItem;
+  const initials = item.seller.split(' ').map(w=>w[0]).join('');
+  const isAvailable = item.status === 'available';
+  const reviews = getItemReviews(item.id);
+  const avg = getAverageRating(item.id);
+  const guest = isGuest();
+
+  screenEl.innerHTML = `
+    <div class="cover fade-in" style="margin-top:26px;">${item.emoji}</div>
+    <div class="detail-title">${item.title}</div>
+    <div class="detail-sub">${item.course} · ${item.condition} · ${item.saleType==='rent'?'For rent':'For sale'}</div>
+
+    <div class="seller-row">
+      <div class="avatar avatar-clickable" id="sellerAvatarBtn" role="button" tabindex="0" aria-label="View ${escapeHtml(item.seller)}'s profile">${initials}</div>
+      <div style="flex:1;">
+        <div class="seller-name">${item.seller} · ${item.year}</div>
+        <div class="seller-verified">${'★'.repeat(item.rating)}${'☆'.repeat(5-item.rating)} · Verified by ${item.verified} students</div>
+      </div>
+      <div class="item-bottom-right">${statusRowHtml(item.status)}</div>
+    </div>
+
+    <div class="card" style="margin-bottom:0;">
+      <div class="item-bottom" style="margin-bottom:0;">
+        <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);">PRICE</span>
+        <span class="price ${item.free?'free':''}" style="font-size:16px;">${item.price}</span>
+      </div>
+    </div>
+
+    <label class="field-label" for="msgBox">MESSAGE TO SELLER (OPTIONAL)</label>
+    <textarea id="msgBox" rows="3" placeholder="${guest ? 'Log in to message the seller' : 'e.g. Can we meet tomorrow after 3pm?'}" ${isAvailable && !guest ?'':'disabled'}>${escapeHtml(state.message)}</textarea>
+
+    <button class="btn-primary" id="requestBtn" ${isAvailable?'':'disabled'}>${isAvailable ? `${guest ? '🔒 Log in to request this' : 'Request this'} ${item.kind === 'book' ? 'book' : item.kind === 'pyq' ? 'PYQ set' : 'notes'}` : (item.status==='sold' ? 'Already sold out' : 'Currently rented out')}</button>
+
+    <label class="field-label">REVIEWS FROM OTHER STUDENTS ${reviews.length ? `(${reviews.length})` : ''}</label>
+    ${avg !== null ? `<div class="item-meta" style="margin-bottom:10px;">Average rating: <span class="review-stars-mini">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5-Math.round(avg))}</span> ${avg.toFixed(1)} / 5</div>` : ''}
+    <div id="itemReviewsList"></div>
+  `;
+
+  const reviewsListEl = screenEl.querySelector('#itemReviewsList');
+  if(reviews.length===0){
+    reviewsListEl.innerHTML = `<div class="empty-state" style="padding-top:20px;"><span class="em">💬</span><p>NO REVIEWS YET — BE THE FIRST TO SHARE ONE AFTER YOUR EXCHANGE</p></div>`;
+  } else {
+    reviews.forEach((rev, i)=>{
+      const revInitials = rev.reviewer.split(' ').map(w=>w[0]).join('').slice(0,2);
+      const div = document.createElement('div');
+      div.className = `card fade-in ${i%2===0?'tilt-l':'tilt-r'}`;
+      div.innerHTML = `
+        <div class="seller-row" style="box-shadow:none;padding:0;background:transparent;margin-bottom:6px;">
+          <div class="avatar" style="width:26px;height:26px;font-size:11px;">${escapeHtml(revInitials)}</div>
+          <div class="seller-name" style="font-size:12px;">${escapeHtml(rev.reviewer)}</div>
+        </div>
+        <div class="review-stars-mini" style="font-size:13px;">${'★'.repeat(rev.rating)}${'☆'.repeat(5-rev.rating)}</div>
+        ${rev.text ? `<div class="item-meta" style="margin-top:6px;margin-bottom:0;">"${escapeHtml(rev.text)}"</div>` : ''}
+      `;
+      reviewsListEl.appendChild(div);
+    });
+  }
+
+  screenEl.querySelector('#msgBox').addEventListener('input', e=> state.message = e.target.value);
+  const sellerAvatarBtn = screenEl.querySelector('#sellerAvatarBtn');
+  sellerAvatarBtn.addEventListener('click', ()=> openSellerProfile(item));
+  sellerAvatarBtn.addEventListener('keypress', e=>{ if(e.key==='Enter') openSellerProfile(item); });
+  screenEl.querySelector('#requestBtn').addEventListener('click', async ()=>{
+    if(isGuest()){ showLoginRequired(GUEST_LOCK_TEXT.request); return; }
+    const btn = screenEl.querySelector('#requestBtn');
+    btn.disabled = true;
+
+    const { data: row, error } = await sb.from('requests').insert({
+      listing_id: item.id,
+      requester_id: state.currentUser.id,
+      owner_id: item.sellerId,
+      message: state.message,
+      status: 'pending',
+    }).select().single();
+
+    if(error){ logErr('create request', error); btn.disabled = false; return; }
+
+    await pushNotification(item.sellerId, {
+      icon: '📥',
+      title: `${state.currentUser.name} requested your item`,
+      text: `${item.emoji} ${item.title}`,
+      action: { view:'requests', tab:'received' },
+    });
+
+    state.message = '';
+    await refreshMyRequests();
+    state.activeRequestIdx = state.requests.findIndex(r => r.dbId === row.id);
+    setView('requests');
+  });
+}
+
+function openReview(idx, origin){
+  const req = state.requests[idx];
+  state.activeRequestIdx = idx;
+  state.reviewRating = req.review ? req.review.rating : 0;
+  state.reviewText = req.review ? req.review.text : '';
+  state.reviewOrigin = origin || 'requests';
+  setView('review');
+}
+
+function openItemBorrowerReview(itemId){
+  const item = LISTINGS.find(l=>l.id===itemId);
+  const isLive = !!item && item.status === 'rented';
+  let existing = null;
+  if(isLive){
+    existing = getConditionReview(itemId);
+  } else {
+    const idx = getLastRentalRecordIndex(itemId);
+    if(idx >= 0 && RENTAL_HISTORY[idx].rating) existing = RENTAL_HISTORY[idx];
+  }
+  state.activeReviewItemId = itemId;
+  state.returnRating = existing ? existing.rating : 0;
+  state.returnText = existing ? existing.text : '';
+  setView('itemBorrowerReview');
+}
+
+/* ================= Requests list ================= */
+function renderRequests(){
+  const pendingIncoming = INCOMING_REQUESTS.filter(r=>r.status==='pending').length;
+  screenEl.innerHTML = `
+    <div class="tabs" style="margin-top:14px;">
+      <button class="tab-btn ${state.requestsTab==='sent'?'active':''}" id="tabSent">MY REQUESTS</button>
+      <button class="tab-btn ${state.requestsTab==='received'?'active':''}" id="tabReceived">REQUESTS FOR YOU${pendingIncoming ? ' ('+pendingIncoming+')' : ''}</button>
+    </div>
+    <div id="reqList"></div>
+  `;
+  screenEl.querySelector('#tabSent').addEventListener('click', ()=>{ state.requestsTab = 'sent'; renderRequests(); });
+  screenEl.querySelector('#tabReceived').addEventListener('click', ()=>{ state.requestsTab = 'received'; renderRequests(); });
+
+  if(state.requestsTab === 'received'){ renderReceivedRequestsList(); return; }
+  renderSentRequestsList();
+}
+
+function renderSentRequestsList(){
+  const list = screenEl.querySelector('#reqList');
+
+  if(state.requests.length===0){
+    list.innerHTML = `<div class="empty-state"><span class="em">📌</span><p>NO REQUESTS YET — GO FIND A BOOK OR NOTES</p></div>`;
+    return;
+  }
+
+  state.requests.forEach((req, idx)=>{
+    const div = document.createElement('div');
+    div.className = `card fade-in ${idx%2===0?'tilt-l':'tilt-r'}`;
+    const meetupSet = req.status==='accepted' && req.spot;
+    const canReview = meetupSet && req.pickupConfirmed;
+    const pickupPromptHtml = !meetupSet || req.pickupConfirmed ? '' : `
+      <button class="btn-primary" style="margin-top:8px;" data-confirmpickup="${idx}">✅ I've received this item</button>
+      <div class="helper-text">Confirming unlocks leaving a review for ${req.item.seller.split(' ')[0]}.</div>
+    `;
+    const reviewHtml = !canReview ? '' : req.review
+      ? `<div class="review-display">Your review: <span class="review-stars-mini">${'★'.repeat(req.review.rating)}${'☆'.repeat(5-req.review.rating)}</span>${req.review.text ? ' — "'+escapeHtml(req.review.text)+'"' : ''}</div><button class="btn-secondary" data-review="${idx}">Edit review →</button>`
+      : `<button class="btn-secondary" data-review="${idx}">Leave a review →</button>`;
+    const stillHolding = req.status==='accepted' && req.item.saleType==='rent' && req.item.status==='rented';
+    const returnItemHtml = !stillHolding ? '' : `
+      ${dueStatusHtml(req.item)}
+      ${req.item.returnPending
+        ? `<div class="status-pill" style="margin-top:8px;">⏳ Waiting for ${req.item.seller.split(' ')[0]} to confirm the return</div>`
+        : `<button class="btn-primary" style="margin-top:8px;" data-borrowerreturn="${idx}">📦 I've returned this item</button>`}
+    `;
+    div.innerHTML = `
+      <div class="req-card">
+        <div>
+          <div class="item-title" style="font-size:15px;">${req.item.emoji} ${req.item.title}</div>
+          <div class="item-meta">${req.item.seller} · <span style="font-weight:600;">${req.item.saleType==='rent' ? '🔁 Renting' : '💰 Buying'}</span>${req.status==='accepted' ? ' · ' + (req.spot ? SPOTS.find(s=>s.id===req.spot).name : '') : ''}</div>
+        </div>
+        <span class="req-status ${req.status}">${req.status.toUpperCase()}</span>
+      </div>
+      ${req.status==='pending' ? `<div class="status-pill" style="margin-top:8px;">⏳ Waiting for ${req.item.seller.split(' ')[0]} to respond</div><button class="btn-secondary" style="margin-top:8px;" data-cancelrequest="${idx}">Cancel request</button>` : req.status==='declined' ? `<div class="status-pill" style="margin-top:8px;">❌ ${req.item.seller.split(' ')[0]} declined this request</div>` : `<button class="btn-secondary" data-view="${idx}">${req.spot ? 'View meetup details →' : 'Arrange meetup →'}</button>`}
+      ${pickupPromptHtml}
+      ${reviewHtml}
+      ${returnItemHtml}
+    `;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll('[data-confirmpickup]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.dataset.confirmpickup);
+      state.requests[idx].pickupConfirmed = true;
+      await sb.from('requests').update({ pickup_confirmed:true }).eq('id', state.requests[idx].dbId);
+      renderRequests();
+    });
+  });
+
+  list.querySelectorAll('[data-cancelrequest]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.dataset.cancelrequest);
+      const req = state.requests[idx];
+      btn.disabled = true;
+      btn.textContent = 'Cancelling…';
+      const { error } = await sb.from('requests').delete().eq('id', req.dbId);
+      if(error){ logErr('cancel request', error); btn.disabled = false; btn.textContent = 'Cancel request'; return; }
+      await refreshMyRequests();
+      renderRequests();
+    });
+  });
+
+  list.querySelectorAll('[data-borrowerreturn]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = Number(btn.dataset.borrowerreturn);
+      claimItemReturned(state.requests[idx].item.id, state.requests[idx].dbId);
+      renderRequests();
+    });
+  });
+
+  list.querySelectorAll('[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = Number(btn.dataset.view);
+      state.activeRequestIdx = idx;
+      if(!state.requests[idx].spot){
+        state.selectedSpot = null;
+        state.selectedTime = '4:00 PM';
+      }
+      setView(state.requests[idx].spot ? 'success' : 'meet');
+    });
+  });
+  list.querySelectorAll('[data-review]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openReview(Number(btn.dataset.review), 'requests'));
+  });
+}
+
+function renderReceivedRequestsList(){
+  const list = screenEl.querySelector('#reqList');
+
+  if(INCOMING_REQUESTS.length===0){
+    list.innerHTML = `<div class="empty-state"><span class="em">📥</span><p>NO ONE HAS REQUESTED YOUR ITEMS YET</p></div>`;
+    return;
+  }
+
+  INCOMING_REQUESTS.forEach((req, idx)=>{
+    const item = LISTINGS.find(l=>l.id===req.itemId);
+    if(!item) return;
+    const div = document.createElement('div');
+    div.className = `card fade-in ${idx%2===0?'tilt-l':'tilt-r'}`;
+    let actionsHtml = '';
+    if(req.status==='pending'){
+      actionsHtml = `
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn-primary" style="margin-top:0;" data-accept="${req.id}">Accept</button>
+          <button class="btn-secondary" style="margin-top:0;" data-decline="${req.id}">Decline</button>
+        </div>
+      `;
+    } else if(req.status==='accepted'){
+      actionsHtml = req.spot
+        ? `<div class="item-meta" style="margin-top:6px;">📍 ${SPOTS.find(s=>s.id===req.spot).name} · ${req.time}</div><button class="btn-secondary" data-viewincoming="${req.id}">View meetup details →</button>`
+        : `<button class="btn-secondary" data-arrangeincoming="${req.id}">Arrange meetup →</button>`;
+    }
+    const requesterInitials = req.requester.split(' ').map(w=>w[0]).join('').slice(0,2);
+    div.innerHTML = `
+      <div class="req-card">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="avatar avatar-clickable" style="width:30px;height:30px;font-size:12px;flex-shrink:0;" data-requesteravatar="${idx}" role="button" tabindex="0" aria-label="View ${escapeHtml(req.requester)}'s profile">${escapeHtml(requesterInitials)}</div>
+          <div>
+            <div class="item-title" style="font-size:15px;">${item.emoji} ${item.title}</div>
+            <div class="item-meta">From ${escapeHtml(req.requester)} · ${escapeHtml(req.requesterYear)}</div>
+          </div>
+        </div>
+        <span class="req-status ${req.status}">${req.status.toUpperCase()}</span>
+      </div>
+      <div class="badge" style="${item.saleType==='rent' ? 'background:var(--sticky-blue);color:#16324f;' : 'background:var(--highlighter);color:#4a3a05;'}margin-bottom:8px;">${item.saleType==='rent' ? '🔁 Wants to rent' : '💰 Wants to buy'}</div>
+      ${req.message ? `<div class="review-display">"${escapeHtml(req.message)}"</div>` : ''}
+      ${actionsHtml}
+    `;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll('[data-requesteravatar]').forEach(el=>{
+    const idx = Number(el.dataset.requesteravatar);
+    const req = INCOMING_REQUESTS[idx];
+    const open = ()=> openBorrowerProfile(req.requester, req.requesterYear);
+    el.addEventListener('click', open);
+    el.addEventListener('keypress', e=>{ if(e.key==='Enter') open(); });
+  });
+
+  list.querySelectorAll('[data-accept]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const req = INCOMING_REQUESTS.find(r=>r.id===btn.dataset.accept);
+      if(!req) return;
+      btn.disabled = true;
+      const { error } = await sb.from('requests').update({ status:'accepted' }).eq('id', req.id);
+      if(error){ logErr('accept request', error); btn.disabled = false; return; }
+      req.status = 'accepted';
+      const item = LISTINGS.find(l=>l.id===req.itemId);
+      await pushNotification(req.requesterId, {
+        icon: '✅',
+        title: 'Request accepted!',
+        text: `${state.currentUser.name} accepted your request for ${item ? item.emoji+' '+item.title : 'your item'}`,
+        action: { view:'requests', tab:'sent' },
+      });
+      openIncomingMeet(req.id);
+    });
+  });
+  list.querySelectorAll('[data-decline]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const req = INCOMING_REQUESTS.find(r=>r.id===btn.dataset.decline);
+      if(!req) return;
+      btn.disabled = true;
+      const { error } = await sb.from('requests').update({ status:'declined' }).eq('id', req.id);
+      if(error){ logErr('decline request', error); btn.disabled = false; return; }
+      req.status = 'declined';
+      const item = LISTINGS.find(l=>l.id===req.itemId);
+      await pushNotification(req.requesterId, {
+        icon: '❌',
+        title: 'Request declined',
+        text: `${state.currentUser.name} declined your request for ${item ? item.emoji+' '+item.title : 'this item'}`,
+        action: { view:'requests', tab:'sent' },
+      });
+      renderRequests();
+    });
+  });
+  list.querySelectorAll('[data-arrangeincoming]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openIncomingMeet(btn.dataset.arrangeincoming));
+  });
+  list.querySelectorAll('[data-viewincoming]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.activeIncomingRequestId = btn.dataset.viewincoming;
+      setView('successIncoming');
+    });
+  });
+}
+
+/* ================= Your Items (seller view) ================= */
+function renderMyItems(){
+  // "My Items" must only ever show listings the signed-in user actually
+  // owns — LISTINGS holds every listing on the whole platform (it's also
+  // what Search reads from), so this view needs its own scoped subset.
+  const myListings = LISTINGS.filter(l => l.sellerId === state.currentUser.id);
+  const total = myListings.length;
+  const available = myListings.filter(l=>l.status==='available').length;
+  const rented = myListings.filter(l=>l.status==='rented').length;
+  const sold = myListings.filter(l=>l.status==='sold').length;
+  const overdue = myListings.filter(l=>isOverdue(l)).length;
+
+  const filterLabels = { all:'ALL LISTINGS', available:'AVAILABLE ITEMS', rented:'RENTED OUT ITEMS', sold:'SOLD ITEMS', overdue:'OVERDUE ITEMS' };
+  const catNames = { all:'All types', book:'Books', notes:'Notes', pyq:'PYQ' };
+  const saleTypeNames = { all:'Buy or rent', buy:'For sale', rent:'For rent' };
+
+  let filtered = myListings.filter(l =>
+    (state.myItemsFilter === 'all' ? true
+      : state.myItemsFilter === 'overdue' ? isOverdue(l)
+      : l.status === state.myItemsFilter) &&
+    (state.myItemsCategoryFilter === 'all' ? true : l.kind === state.myItemsCategoryFilter) &&
+    (state.myItemsSaleTypeFilter === 'all' ? true : l.saleType === state.myItemsSaleTypeFilter)
+  );
+
+  // With no status filter applied, surface active loans first — overdue
+  // rentals at the very top, then everything else still rented out.
+  if(state.myItemsFilter === 'all'){
+    filtered = filtered
+      .map((item, originalIndex) => ({ item, originalIndex }))
+      .sort((a, b)=>{
+        const rank = (l)=> isOverdue(l) ? 0 : (l.status === 'rented' ? 1 : 2);
+        const aRank = rank(a.item);
+        const bRank = rank(b.item);
+        if(aRank !== bRank) return aRank - bRank;
+        return a.originalIndex - b.originalIndex;
+      })
+      .map(e => e.item);
+  }
+
+  screenEl.innerHTML = `
+    <label class="field-label" style="margin-top:14px;">YOUR ITEMS</label>
+    <div class="card summary-card">
+      <div class="summary-row summary-row-btn ${state.myItemsFilter==='all'?'active':''}" id="statAll" role="button" tabindex="0"><span class="summary-key">TOTAL LISTED</span><span class="summary-val">${total}</span></div>
+      <div class="summary-row summary-row-btn ${state.myItemsFilter==='available'?'active':''}" id="statAvailable" role="button" tabindex="0"><span class="summary-key">AVAILABLE</span><span class="summary-val">${available}</span></div>
+      <div class="summary-row summary-row-btn ${state.myItemsFilter==='rented'?'active':''}" id="statRented" role="button" tabindex="0"><span class="summary-key">RENTED OUT</span><span class="summary-val">${rented}</span></div>
+      <div class="summary-row summary-row-btn ${state.myItemsFilter==='sold'?'active':''}" id="statSold" role="button" tabindex="0"><span class="summary-key">SOLD</span><span class="summary-val">${sold}</span></div>
+      <div class="summary-row summary-row-btn ${state.myItemsFilter==='overdue'?'active':''}" id="statOverdue" role="button" tabindex="0"><span class="summary-key">OVERDUE</span><span class="summary-val">${overdue}</span></div>
+    </div>
+
+    <button class="filter-open-btn" id="openMyItemsFiltersBtn">
+      <span class="fob-left"><span class="fob-icon">🧰</span> Filter</span>
+      <span class="fob-summary">${catNames[state.myItemsCategoryFilter]} · ${saleTypeNames[state.myItemsSaleTypeFilter]} <span class="fob-arrow">→</span></span>
+    </button>
+
+    <label class="field-label">${filterLabels[state.myItemsFilter]}</label>
+    <div id="myItemsList"></div>
+  `;
+
+  const filterMap = { statAll:'all', statAvailable:'available', statRented:'rented', statSold:'sold', statOverdue:'overdue' };
+  Object.keys(filterMap).forEach(btnId=>{
+    const el = screenEl.querySelector('#'+btnId);
+    const setFilter = ()=>{ state.myItemsFilter = filterMap[btnId]; renderMyItems(); };
+    el.addEventListener('click', setFilter);
+    el.addEventListener('keypress', e=>{ if(e.key==='Enter') setFilter(); });
+  });
+
+  screenEl.querySelector('#openMyItemsFiltersBtn').addEventListener('click', ()=> setView('myItemsFilters'));
+
+  const listEl = screenEl.querySelector('#myItemsList');
+  if(filtered.length===0){
+    listEl.innerHTML = `<div class="empty-state"><span class="em">📦</span><p>NOTHING IN THIS CATEGORY YET</p></div>`;
+    return;
+  }
+  filtered.forEach((item, i)=>{
+    const avg = getAverageRating(item.id);
+    const div = document.createElement('div');
+    div.className = `card fade-in ${i%2===0?'tilt-l':'tilt-r'}`;
+    const isRentedOut = item.status === 'rented' && !!item.rentedTo;
+    const cond = isRentedOut ? getConditionReview(item.id) : null;
+    const borrowerLvl = isRentedOut ? getLevelInfo(getBorrowerScore(item.rentedTo || '')) : null;
+    const overdue = isRentedOut && isOverdue(item);
+    const lastRecordIdx = isRentedOut ? -1 : getLastRentalRecordIndex(item.id);
+    const lastRecord = lastRecordIdx >= 0 ? RENTAL_HISTORY[lastRecordIdx] : null;
+    const borrowerHtml = isRentedOut ? `
+      <div class="review-display">Rented to ${escapeHtml(item.rentedTo || 'a student')} ${borrowerChipHtml(item.rentedTo)}${cond ? `<br>Return condition: <span class="review-stars-mini">${'★'.repeat(cond.rating)}${'☆'.repeat(5-cond.rating)}</span>` : ''}${cond && cond.text ? ' — "'+escapeHtml(cond.text)+'"' : ''}</div>
+      ${dueStatusHtml(item)}
+      ${item.returnPending ? `
+        <div class="status-pill" style="margin-top:8px;">📩 ${escapeHtml(item.rentedTo)} says they've returned this</div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="btn-primary" style="margin-top:0;" data-confirmreturn="${item.id}">Confirm — got it back</button>
+          <button class="btn-secondary" style="margin-top:0;" data-disputereturn="${item.id}">Not yet</button>
+        </div>
+      ` : `
+        <button class="btn-secondary" data-condreview="${item.id}">${cond ? 'Edit review of borrower →' : 'Review the borrower →'}</button>
+        <button class="btn-primary" style="margin-top:8px;" data-markreturned="${item.id}">📦 Mark item as returned</button>
+      `}
+    ` : (lastRecord ? `
+      <div class="review-display">Last rented to ${escapeHtml(lastRecord.borrowerName || 'a student')} ${borrowerChipHtml(lastRecord.borrowerName)}${lastRecord.rating ? `<br>Return condition: <span class="review-stars-mini">${'★'.repeat(lastRecord.rating)}${'☆'.repeat(5-lastRecord.rating)}</span>` : ''}${lastRecord.rating && lastRecord.text ? ' — "'+escapeHtml(lastRecord.text)+'"' : ''}</div>
+      <button class="btn-secondary" data-condreview="${item.id}">${lastRecord.rating ? 'Edit review of borrower →' : 'Review the borrower →'}</button>
+    ` : '');
+    // only an untouched, available listing is safe to delete outright — once
+    // it's been rented or sold it's part of the exchange history/reputation record.
+    const deleteHtml = item.status === 'available' ? `<button class="btn-secondary" style="margin-top:8px;" data-deletelisting="${item.id}">🗑️ Delete listing</button>` : '';
+    div.innerHTML = `
+      <div class="item-title" style="cursor:pointer;">${item.emoji} ${item.title}</div>
+      <div class="item-meta">${item.course} · ${item.saleType==='rent'?'Listed for rent':'Listed for sale'}</div>
+      <div class="item-bottom">
+        <span class="price ${item.free?'free':''}">${item.price}</span>
+        <div class="item-bottom-right">
+          ${statusRowHtml(item.status)}
+          ${overdue ? `<span class="badge" style="background:var(--sticky-pink);color:#7a2020;">⚠️ Overdue</span>` : ''}
+          ${avg !== null ? `<span class="review-stars-mini" style="font-size:11px;">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5-Math.round(avg))} (${getItemReviews(item.id).length})</span>` : ''}
+        </div>
+      </div>
+      ${borrowerHtml}
+      ${deleteHtml}
+    `;
+    div.querySelector('.item-title').addEventListener('click', ()=> openDetail(item, 'myitems'));
+    listEl.appendChild(div);
+  });
+
+  listEl.querySelectorAll('[data-condreview]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      openItemBorrowerReview(btn.dataset.condreview);
+    });
+  });
+  listEl.querySelectorAll('[data-markreturned]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      markItemReturned(btn.dataset.markreturned);
+      renderMyItems();
+    });
+  });
+  listEl.querySelectorAll('[data-confirmreturn]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      markItemReturned(btn.dataset.confirmreturn);
+      renderMyItems();
+    });
+  });
+  listEl.querySelectorAll('[data-disputereturn]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      disputeItemReturn(btn.dataset.disputereturn);
+      renderMyItems();
+    });
+  });
+
+  listEl.querySelectorAll('[data-deletelisting]').forEach(btn=>{
+    btn.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      if(!confirm('Delete this listing? This can\'t be undone.')) return;
+      const listingId = btn.dataset.deletelisting;
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      const { error } = await sb.from('listings').delete().eq('id', listingId);
+      if(error){ logErr('delete listing', error); btn.disabled = false; btn.textContent = '🗑️ Delete listing'; return; }
+      await refreshListings();
+      renderMyItems();
+    });
+  });
+}
+
+/* ================= Full-screen Filter view (My Items) ================= */
+function renderMyItemsFilters(){
+  const statuses = [
+    { id:'all', name:'All listings', emoji:'📋' },
+    { id:'available', name:'Available', emoji:'🟢' },
+    { id:'rented', name:'Rented out', emoji:'🟡' },
+    { id:'sold', name:'Sold', emoji:'🔴' },
+    { id:'overdue', name:'Overdue', emoji:'⚠️' },
+  ];
+  const categories = [
+    { id:'all', name:'All types', emoji:'🔀' },
+    { id:'book', name:'Books', emoji:'📘' },
+    { id:'notes', name:'Notes', emoji:'📗' },
+    { id:'pyq', name:'PYQ', emoji:'📝' },
+  ];
+  const saleTypes = [
+    { id:'all', name:'Buy or rent', emoji:'🔀' },
+    { id:'buy', name:'For sale', emoji:'💰' },
+    { id:'rent', name:'For rent', emoji:'🔁' },
+  ];
+
+  screenEl.innerHTML = `
+    <div class="fade-in" style="margin-top:14px;">
+      <div class="filter-section-title">STATUS</div>
+      <div id="myFilterStatusList"></div>
+
+      <div class="filter-section-title">CATEGORY</div>
+      <div id="myFilterCategoryList"></div>
+
+      <div class="filter-section-title">BUY OR RENT</div>
+      <div id="myFilterSaleTypeList"></div>
+
+      <button class="btn-primary" id="applyMyItemsFiltersBtn">Apply filters</button>
+    </div>
+  `;
+
+  const statusList = screenEl.querySelector('#myFilterStatusList');
+  statuses.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.myItemsFilter===s.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="myFilterStatus" ${state.myItemsFilter===s.id?'checked':''} />
+      <span class="spot-emoji">${s.emoji}</span>
+      <span class="spot-name">${s.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.myItemsFilter = s.id; renderMyItemsFilters(); });
+    statusList.appendChild(div);
+  });
+
+  const catList = screenEl.querySelector('#myFilterCategoryList');
+  categories.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.myItemsCategoryFilter===c.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="myFilterCat" ${state.myItemsCategoryFilter===c.id?'checked':''} />
+      <span class="spot-emoji">${c.emoji}</span>
+      <span class="spot-name">${c.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.myItemsCategoryFilter = c.id; renderMyItemsFilters(); });
+    catList.appendChild(div);
+  });
+
+  const saleTypeList = screenEl.querySelector('#myFilterSaleTypeList');
+  saleTypes.forEach(s=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.myItemsSaleTypeFilter===s.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="myFilterSaleType" ${state.myItemsSaleTypeFilter===s.id?'checked':''} />
+      <span class="spot-emoji">${s.emoji}</span>
+      <span class="spot-name">${s.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.myItemsSaleTypeFilter = s.id; renderMyItemsFilters(); });
+    saleTypeList.appendChild(div);
+  });
+
+  screenEl.querySelector('#applyMyItemsFiltersBtn').addEventListener('click', ()=> setView('myitems'));
+}
+
+/* ================= Screen 3: Meet on Campus (buyer/requester side) ================= */
+function renderMeet(){
+  const req = state.requests[state.activeRequestIdx];
+  const times = ['11:00 AM','1:30 PM','4:00 PM','6:30 PM'];
+
+  screenEl.innerHTML = `
+    <span class="status-pill" style="margin-top:26px;">✓ ${req.item.seller.split(' ')[0]} accepted your request</span>
+    <div class="item-title" style="font-size:17px;">${req.item.emoji} ${req.item.title}</div>
+    <div class="item-meta" style="margin-bottom:14px;">Now let's set up a safe, on-campus meetup</div>
+
+    <label class="field-label">PICK A MEETUP SPOT</label>
+    <div id="spotList"></div>
+
+    <label class="field-label">PICK A TIME</label>
+    <select id="timeSelect">
+      ${times.map(t=>`<option value="${t}" ${t===state.selectedTime?'selected':''}>${t}</option>`).join('')}
+    </select>
+
+    ${req.item.saleType==='rent' ? `
+      <label class="field-label">RETURN BY</label>
+      <select id="dueDaysSelect">
+        ${DUE_DATE_OPTIONS.map(o=>`<option value="${o.days}" ${o.days===state.selectedDueDays?'selected':''}>${o.label}</option>`).join('')}
+      </select>
+      <div class="helper-text">The item auto-flags as overdue if it's not marked returned by then.</div>
+    ` : ''}
+
+    <button class="btn-primary" id="confirmBtn" ${state.selectedSpot?'':'disabled'}>Confirm meetup</button>
+  `;
+
+  const spotList = screenEl.querySelector('#spotList');
+  SPOTS.forEach(spot=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.selectedSpot===spot.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="spot" ${state.selectedSpot===spot.id?'checked':''} />
+      <span class="spot-emoji">${spot.emoji}</span>
+      <span class="spot-name">${spot.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.selectedSpot = spot.id; render(); });
+    spotList.appendChild(div);
+  });
+
+  screenEl.querySelector('#timeSelect').addEventListener('change', e=> state.selectedTime = e.target.value);
+  const dueSelect = screenEl.querySelector('#dueDaysSelect');
+  if(dueSelect){
+    dueSelect.addEventListener('change', e=> state.selectedDueDays = Number(e.target.value));
+  }
+  screenEl.querySelector('#confirmBtn').addEventListener('click', async ()=>{
+    if(!state.selectedSpot) return;
+    req.spot = state.selectedSpot;
+    req.time = state.selectedTime;
+    const borrowerName = (state.currentUser && state.currentUser.name) ? state.currentUser.name : 'You';
+    const dueDate = req.item.saleType==='rent' ? Date.now() + state.selectedDueDays*86400000 : null;
+    await sb.from('requests').update({ spot: state.selectedSpot, meet_time: state.selectedTime }).eq('id', req.dbId);
+    await completeItemTransaction(req.item, borrowerName, state.currentUser.id, dueDate);
+    await refreshListings();
+    setView('success');
+  });
+}
+
+/* ================= Success (buyer/requester side) ================= */
+function renderSuccess(){
+  const req = state.requests[state.activeRequestIdx];
+  const spot = SPOTS.find(s=>s.id===req.spot);
+  screenEl.innerHTML = `
+    <div class="success-wrap fade-in">
+      <div class="success-mark">🤝</div>
+      <div class="success-title">Meetup confirmed!</div>
+      <div class="item-meta">Show this to ${req.item.seller.split(' ')[0]} when you arrive</div>
+      <div class="card summary-card">
+        <div class="summary-row"><span class="summary-key">ITEM</span><span class="summary-val">${req.item.title}</span></div>
+        <div class="summary-row"><span class="summary-key">WITH</span><span class="summary-val">${req.item.seller}</span></div>
+        <div class="summary-row"><span class="summary-key">SPOT</span><span class="summary-val">${spot.emoji} ${spot.name}</span></div>
+        <div class="summary-row"><span class="summary-key">TIME</span><span class="summary-val">${req.time}</span></div>
+        ${req.item.dueDate ? `<div class="summary-row"><span class="summary-key">RETURN BY</span><span class="summary-val">${formatDueDate(req.item.dueDate)}</span></div>` : ''}
+      </div>
+      <button class="btn-secondary" id="doneBtn" style="margin-top:20px;">Back to search</button>
+    </div>
+  `;
+  screenEl.querySelector('#doneBtn').addEventListener('click', ()=> setView('search'));
+}
+
+/* ================= Meet on Campus (seller/lister side — "Requests For You") ================= */
+function openIncomingMeet(reqId){
+  const req = INCOMING_REQUESTS.find(r=>r.id===reqId);
+  if(!req) return;
+  state.activeIncomingRequestId = reqId;
+  state.selectedSpot = req.spot || null;
+  state.selectedTime = req.time || '4:00 PM';
+  setView('meetIncoming');
+}
+
+function renderMeetIncoming(){
+  const req = INCOMING_REQUESTS.find(r=>r.id===state.activeIncomingRequestId);
+  const item = LISTINGS.find(l=>l.id===req.itemId);
+  const times = ['11:00 AM','1:30 PM','4:00 PM','6:30 PM'];
+
+  screenEl.innerHTML = `
+    <span class="status-pill" style="margin-top:26px;">✓ You accepted ${req.requester.split(' ')[0]}'s request</span>
+    <div class="item-title" style="font-size:17px;">${item.emoji} ${item.title}</div>
+    <div class="item-meta" style="margin-bottom:14px;">Set up a safe, on-campus handoff with ${req.requester}</div>
+
+    <label class="field-label">PICK A MEETUP SPOT</label>
+    <div id="spotListIncoming"></div>
+
+    <label class="field-label">PICK A TIME</label>
+    <select id="timeSelectIncoming">
+      ${times.map(t=>`<option value="${t}" ${t===state.selectedTime?'selected':''}>${t}</option>`).join('')}
+    </select>
+
+    ${item.saleType==='rent' ? `
+      <label class="field-label">RETURN BY</label>
+      <select id="dueDaysSelectIncoming">
+        ${DUE_DATE_OPTIONS.map(o=>`<option value="${o.days}" ${o.days===state.selectedDueDays?'selected':''}>${o.label}</option>`).join('')}
+      </select>
+      <div class="helper-text">The item auto-flags as overdue on My Items if it's not back by then.</div>
+    ` : ''}
+
+    <button class="btn-primary" id="confirmIncomingBtn" ${state.selectedSpot?'':'disabled'}>Confirm meetup</button>
+  `;
+
+  const spotList = screenEl.querySelector('#spotListIncoming');
+  SPOTS.forEach(spot=>{
+    const div = document.createElement('div');
+    div.className = `spot-option ${state.selectedSpot===spot.id?'selected':''}`;
+    div.innerHTML = `
+      <input type="radio" name="spotIncoming" ${state.selectedSpot===spot.id?'checked':''} />
+      <span class="spot-emoji">${spot.emoji}</span>
+      <span class="spot-name">${spot.name}</span>
+    `;
+    div.addEventListener('click', ()=>{ state.selectedSpot = spot.id; render(); });
+    spotList.appendChild(div);
+  });
+
+  screenEl.querySelector('#timeSelectIncoming').addEventListener('change', e=> state.selectedTime = e.target.value);
+  const dueSelectIncoming = screenEl.querySelector('#dueDaysSelectIncoming');
+  if(dueSelectIncoming){
+    dueSelectIncoming.addEventListener('change', e=> state.selectedDueDays = Number(e.target.value));
+  }
+  screenEl.querySelector('#confirmIncomingBtn').addEventListener('click', async ()=>{
+    if(!state.selectedSpot) return;
+    req.spot = state.selectedSpot;
+    req.time = state.selectedTime;
+    const dueDate = item.saleType==='rent' ? Date.now() + state.selectedDueDays*86400000 : null;
+    await sb.from('requests').update({ spot: state.selectedSpot, meet_time: state.selectedTime }).eq('id', req.dbId);
+    await completeItemTransaction(item, req.requester, req.requesterId, dueDate);
+    await pushNotification(req.requesterId, {
+      icon: '📍',
+      title: 'Meetup arranged!',
+      text: `${item.emoji} ${item.title} — ${SPOTS.find(s=>s.id===state.selectedSpot).name} at ${state.selectedTime}`,
+      action: { view:'requests', tab:'sent' },
+    });
+    await refreshListings();
+    setView('successIncoming');
+  });
+}
+
+function renderSuccessIncoming(){
+  const req = INCOMING_REQUESTS.find(r=>r.id===state.activeIncomingRequestId);
+  const item = LISTINGS.find(l=>l.id===req.itemId);
+  const spot = SPOTS.find(s=>s.id===req.spot);
+  screenEl.innerHTML = `
+    <div class="success-wrap fade-in">
+      <div class="success-mark">🤝</div>
+      <div class="success-title">Meetup confirmed!</div>
+      <div class="item-meta">Show this to ${escapeHtml(req.requester.split(' ')[0])} when they arrive</div>
+      <div class="card summary-card">
+        <div class="summary-row"><span class="summary-key">ITEM</span><span class="summary-val">${item.title}</span></div>
+        <div class="summary-row"><span class="summary-key">WITH</span><span class="summary-val">${escapeHtml(req.requester)}</span></div>
+        <div class="summary-row"><span class="summary-key">SPOT</span><span class="summary-val">${spot.emoji} ${spot.name}</span></div>
+        <div class="summary-row"><span class="summary-key">TIME</span><span class="summary-val">${req.time}</span></div>
+        ${item.dueDate ? `<div class="summary-row"><span class="summary-key">RETURN BY</span><span class="summary-val">${formatDueDate(item.dueDate)}</span></div>` : ''}
+      </div>
+      <button class="btn-secondary" id="doneIncomingBtn" style="margin-top:20px;">Back to requests</button>
+    </div>
+  `;
+  screenEl.querySelector('#doneIncomingBtn').addEventListener('click', ()=> setView('requests'));
+}
+
+/* ================= Leave a review ================= */
+function renderReview(){
+  const req = state.requests[state.activeRequestIdx];
+  screenEl.innerHTML = `
+    <div class="fade-in" style="margin-top:20px;">
+      <div class="cover" style="height:110px;font-size:34px;">${req.item.emoji}</div>
+      <div class="detail-title" style="font-size:18px;">${req.item.title}</div>
+      <div class="item-meta" style="margin-bottom:14px;">Rate your exchange with ${req.item.seller}</div>
+
+      <label class="field-label">YOUR RATING</label>
+      <div class="star-rating" id="starRating"></div>
+
+      <label class="field-label">COMMENT (OPTIONAL)</label>
+      <textarea id="reviewText" rows="4" placeholder="e.g. Notes were exactly as described, smooth handoff!">${escapeHtml(state.reviewText)}</textarea>
+
+      <button class="btn-primary" id="submitReviewBtn" ${state.reviewRating ? '' : 'disabled'}>${req.review ? 'Update review' : 'Submit review'}</button>
+    </div>
+  `;
+
+  const starWrap = screenEl.querySelector('#starRating');
+  for(let i=1;i<=5;i++){
+    const btn = document.createElement('button');
+    btn.className = `star-btn ${i<=state.reviewRating ? 'filled' : ''}`;
+    btn.textContent = i<=state.reviewRating ? '★' : '☆';
+    btn.setAttribute('aria-label', `${i} star${i>1?'s':''}`);
+    btn.addEventListener('click', ()=>{ state.reviewRating = i; renderReview(); });
+    starWrap.appendChild(btn);
+  }
+
+  screenEl.querySelector('#reviewText').addEventListener('input', e=> state.reviewText = e.target.value);
+  screenEl.querySelector('#submitReviewBtn').addEventListener('click', ()=>{
+    if(!state.reviewRating) return;
+    const text = state.reviewText.trim();
+    req.review = { rating: state.reviewRating, text };
+    upsertItemReview(req.item.id, req.dbId, req.item.sellerId, state.reviewRating, text);
+    setView(state.reviewOrigin || 'requests');
+  });
+}
+
+/* ================= Seller reviews the person who rented their item ================= */
+function renderItemBorrowerReview(){
+  const item = LISTINGS.find(l => l.id === state.activeReviewItemId);
+  const isLive = item.status === 'rented';
+  const lastRecordIdx = isLive ? -1 : getLastRentalRecordIndex(item.id);
+  const borrowerName = isLive ? item.rentedTo : (lastRecordIdx >= 0 ? RENTAL_HISTORY[lastRecordIdx].borrowerName : null);
+  const existing = isLive
+    ? getConditionReview(item.id)
+    : (lastRecordIdx >= 0 && RENTAL_HISTORY[lastRecordIdx].rating ? RENTAL_HISTORY[lastRecordIdx] : null);
+
+  screenEl.innerHTML = `
+    <div class="fade-in" style="margin-top:20px;">
+      <span class="type-tag college">🔁 REVIEW THE BORROWER</span>
+      <div class="cover" style="height:110px;font-size:34px;margin-top:14px;">${item.emoji}</div>
+      <div class="detail-title" style="font-size:18px;">${item.title}</div>
+      <div class="item-meta" style="margin-bottom:14px;">${isLive ? 'Rented' : 'Last rented'} to ${escapeHtml(borrowerName || 'a student')} ${borrowerChipHtml(borrowerName)} — did they return it in the same or good condition?</div>
+
+      <label class="field-label">RETURN CONDITION RATING</label>
+      <div class="star-rating" id="itemReturnRating"></div>
+      <div class="helper-text">5 stars = returned in the same/great condition · 1 star = damaged or not returned</div>
+
+      <label class="field-label">NOTES (OPTIONAL)</label>
+      <textarea id="itemReturnText" rows="4" placeholder="e.g. Came back on time, in the same condition as when I lent it.">${escapeHtml(state.returnText)}</textarea>
+
+      <button class="btn-primary" id="submitItemReturnBtn" ${state.returnRating ? '' : 'disabled'}>${existing ? 'Update review' : 'Submit review'}</button>
+    </div>
+  `;
+
+  const starWrap = screenEl.querySelector('#itemReturnRating');
+  for(let i=1;i<=5;i++){
+    const btn = document.createElement('button');
+    btn.className = `star-btn ${i<=state.returnRating ? 'filled' : ''}`;
+    btn.textContent = i<=state.returnRating ? '★' : '☆';
+    btn.setAttribute('aria-label', `${i} star${i>1?'s':''}`);
+    btn.addEventListener('click', ()=>{ state.returnRating = i; renderItemBorrowerReview(); });
+    starWrap.appendChild(btn);
+  }
+
+  screenEl.querySelector('#itemReturnText').addEventListener('input', e=> state.returnText = e.target.value);
+  screenEl.querySelector('#submitItemReturnBtn').addEventListener('click', ()=>{
+    if(!state.returnRating) return;
+    if(isLive){
+      setConditionReview(item.id, state.returnRating, state.returnText.trim());
+    } else if(lastRecordIdx >= 0){
+      RENTAL_HISTORY[lastRecordIdx].rating = state.returnRating;
+      RENTAL_HISTORY[lastRecordIdx].text = state.returnText.trim();
+    }
+    setView('myitems');
+  });
+}
+
+/* ================= Profile ================= */
+function renderGuestProfile(){
+  screenEl.innerHTML = `
+    <div class="success-wrap" style="padding-top:16px;">
+      <div class="avatar" style="width:60px;height:60px;font-size:24px;margin-bottom:10px;">👤</div>
+      <div class="detail-title">Guest</div>
+      <div class="item-meta">Browsing only — no account</div>
+
+      <div class="card summary-card">
+        <div class="summary-row"><span class="summary-key">✅ YOU CAN</span><span class="summary-val">Search &amp; browse</span></div>
+        <div class="summary-row"><span class="summary-key">✅ YOU CAN</span><span class="summary-val">Read reviews</span></div>
+        <div class="summary-row"><span class="summary-key">🔒 LOCKED</span><span class="summary-val">Request / Buy</span></div>
+        <div class="summary-row"><span class="summary-key">🔒 LOCKED</span><span class="summary-val">Sell / Rent</span></div>
+        <div class="summary-row"><span class="summary-key">🔒 LOCKED</span><span class="summary-val">Reviews &amp; ratings</span></div>
+      </div>
+
+      <button class="btn-primary" id="guestProfileLogin">Log in</button>
+      <button class="btn-secondary" id="guestProfileSignup" style="margin-top:6px;">Create free account</button>
+    </div>
+  `;
+  screenEl.querySelector('#guestProfileLogin').addEventListener('click', ()=> leaveGuest('login'));
+  screenEl.querySelector('#guestProfileSignup').addEventListener('click', ()=> leaveGuest('signup-choose'));
+}
+
+function renderProfile(){
+  if(isGuest()) return renderGuestProfile();
+  const u = state.currentUser;
+  const karma = computeKarma();
+  const lvl = getLevelInfo(karma);
+  const progressPct = Math.round(((karma - lvl.floor) / (lvl.ceil - lvl.floor)) * 100);
+
+  screenEl.innerHTML = `
+    <div class="success-wrap" style="padding-top:16px;">
+      <div class="avatar" style="width:60px;height:60px;font-size:20px;margin-bottom:10px;">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      <div class="detail-title">${escapeHtml(u.name)}</div>
+      <div class="item-meta">${u.type==='student' ? `${escapeHtml(u.course||'')} · ${escapeHtml(u.year||'')}` : 'College Administrator'}</div>
+
+      <div class="id-badge" style="width:100%;">
+        <div class="id-label">UNIQUE S2S ID</div>
+        <div class="id-value" style="font-size:16px;">${u.uniqueId}</div>
+      </div>
+
+      <div class="card summary-card">
+        <div class="summary-row"><span class="summary-key">ACCOUNT TYPE</span><span class="summary-val">${u.type==='student'?'Student 🎓':'College 🏫'}</span></div>
+        <div class="summary-row"><span class="summary-key">${u.type==='student'?'COLLEGE':'INSTITUTION'}</span><span class="summary-val">${escapeHtml(u.college||'')}</span></div>
+        ${u.type==='student' ? `<div class="summary-row" id="borrowedRow" style="cursor:pointer;" tabindex="0" role="button"><span class="summary-key">ITEMS BORROWED</span><span class="summary-val">${state.requests.filter(r=>r.status==='accepted').length} <span style="color:var(--ink-soft);">→</span></span></div>` : `<div class="summary-row"><span class="summary-key">DOMAIN</span><span class="summary-val">${escapeHtml(u.domain||'')}</span></div>`}
+        <div class="summary-row"><span class="summary-key">LEVEL</span><span class="summary-val">${lvl.emoji} Lv.${lvl.level} — ${lvl.name}</span></div>
+        <div class="level-bar-track"><div class="level-bar-fill" style="width:${progressPct}%;"></div></div>
+        <div class="item-meta" style="margin-top:6px;margin-bottom:0;text-align:right;">Karma score: ${karma}/100</div>
+      </div>
+      <div class="helper-text" style="text-align:center;">Your level moves up or down based on the reviews your listed items get, and the reviews you get for how you return borrowed items.</div>
+
+      <button class="btn-secondary" id="logoutBtn" style="margin-top:6px;">Log out</button>
+    </div>
+  `;
+
+  screenEl.querySelector('#logoutBtn').addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+    state.loggedIn = false;
+    state.currentUser = null;
+    state.loginId = '';
+    state.loginPassword = '';
+    setView('login');
+  });
+
+  const borrowedRow = screenEl.querySelector('#borrowedRow');
+  if(borrowedRow){
+    borrowedRow.addEventListener('click', ()=> setView('borrowed'));
+    borrowedRow.addEventListener('keypress', e=>{ if(e.key==='Enter') setView('borrowed'); });
+  }
+}
+
+/* ================= Items borrowed (from profile) ================= */
+function renderBorrowed(){
+  const borrowedEntries = state.requests
+    .map((req, idx) => ({ req, idx }))
+    .filter(e => e.req.status === 'accepted');
+
+  screenEl.innerHTML = `<label class="field-label" style="margin-top:14px;">ITEMS BORROWED</label><div id="borrowedList"></div>`;
+  const list = screenEl.querySelector('#borrowedList');
+
+  if(borrowedEntries.length===0){
+    list.innerHTML = `<div class="empty-state"><span class="em">🎒</span><p>NOTHING BORROWED YET — ACCEPTED REQUESTS SHOW UP HERE</p></div>`;
+    return;
+  }
+
+  borrowedEntries.forEach(({req, idx}, i)=>{
+    const div = document.createElement('div');
+    div.className = `card fade-in ${i%2===0?'tilt-l':'tilt-r'}`;
+    const meetupSet = !!req.spot;
+    const canReview = meetupSet && req.pickupConfirmed;
+    const pickupPromptHtml = !meetupSet || req.pickupConfirmed ? '' : `
+      <button class="btn-primary" style="margin-top:8px;" data-confirmpickup="${idx}">✅ I've received this item</button>
+      <div class="helper-text">Confirming unlocks leaving a review for ${req.item.seller.split(' ')[0]}.</div>
+    `;
+    const reviewHtml = !canReview ? '' : req.review
+      ? `<div class="review-display">Your review: <span class="review-stars-mini">${'★'.repeat(req.review.rating)}${'☆'.repeat(5-req.review.rating)}</span>${req.review.text ? ' — "'+escapeHtml(req.review.text)+'"' : ''}</div><button class="btn-secondary" data-review="${idx}">Edit review →</button>`
+      : `<button class="btn-secondary" data-review="${idx}">Leave a review →</button>`;
+    const stillHolding = req.item.saleType==='rent' && req.item.status==='rented';
+    const returnItemHtml = !stillHolding ? '' : `
+      ${dueStatusHtml(req.item)}
+      ${req.item.returnPending
+        ? `<div class="status-pill" style="margin-top:8px;">⏳ Waiting for ${req.item.seller.split(' ')[0]} to confirm the return</div>`
+        : `<button class="btn-primary" style="margin-top:8px;" data-borrowerreturn="${idx}">📦 I've returned this item</button>`}
+    `;
+    div.innerHTML = `
+      <div class="item-title" style="font-size:15px;">${req.item.emoji} ${req.item.title}</div>
+      <div class="item-meta">${req.item.course} · From ${req.item.seller}</div>
+      <div class="item-bottom">
+        <span class="price ${req.item.free?'free':''}">${req.item.price}</span>
+        <span class="badge">${req.spot ? SPOTS.find(s=>s.id===req.spot).emoji + ' ' + SPOTS.find(s=>s.id===req.spot).name : 'Meetup pending'}</span>
+      </div>
+      ${pickupPromptHtml}
+      ${reviewHtml}
+      ${returnItemHtml}
+    `;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll('[data-confirmpickup]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.dataset.confirmpickup);
+      state.requests[idx].pickupConfirmed = true;
+      await sb.from('requests').update({ pickup_confirmed:true }).eq('id', state.requests[idx].dbId);
+      renderBorrowed();
+    });
+  });
+
+  list.querySelectorAll('[data-borrowerreturn]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = Number(btn.dataset.borrowerreturn);
+      claimItemReturned(state.requests[idx].item.id, state.requests[idx].dbId);
+      renderBorrowed();
+    });
+  });
+
+  list.querySelectorAll('[data-review]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openReview(Number(btn.dataset.review), 'borrowed'));
+  });
+}
+
+/* ================= Menu drawer (side dashboard) ================= */
+function closeMenu(){
+  state.menuOpen = false;
+  renderMenuDrawer();
+}
+
+function renderMenuDrawer(){
+  const u = state.currentUser;
+  const items = [
+    { id:'theme', icon: state.theme==='dark' ? '🌙' : '☀️', title:'Theme', desc: state.theme==='dark' ? 'Dark mode is on' : 'Light mode is on', action:'toggle-theme' },
+    { id:'history', icon:'🕘', title:'Search history', desc:'Revisit what you\'ve searched for', action:'history' },
+    { id:'notif', icon:'🔔', title:'Notification settings', desc:'Choose when S2S pings you about requests' },
+    { id:'safety', icon:'🛡️', title:'Safety & meetup tips', desc:'Guidelines for safe on-campus exchanges' },
+    { id:'help', icon:'❓', title:'Help & support', desc:'FAQs and how to reach the S2S team' },
+    { id:'about', icon:'📄', title:'About S2S', desc:'Student to Student — notes & books, passed along' },
+    { id:'rate', icon:'⭐', title:'Rate this app', desc:'Tell us how the exchange went' },
+  ];
+
+  menuOverlay.className = `menu-overlay ${state.menuOpen ? 'open' : ''}`;
+  menuOverlay.innerHTML = `
+    <div class="menu-backdrop" id="menuBackdrop"></div>
+    <div class="menu-drawer">
+      <div class="menu-drawer-head">
+        <span class="menu-drawer-title">Menu</span>
+        <button class="menu-close-btn" id="menuCloseBtn" aria-label="Close menu">✕</button>
+      </div>
+
+      <div class="menu-actions">
+        <button class="menu-action-btn sell" id="menuSellBtn"><span class="maa-icon">💰</span>SELL${isGuest() ? ' 🔒' : ''}</button>
+        <button class="menu-action-btn rent" id="menuRentBtn"><span class="maa-icon">🔁</span>RENT${isGuest() ? ' 🔒' : ''}</button>
+      </div>
+
+      <div id="menuList"></div>
+      <label class="field-label">ACCOUNT</label>
+      <button class="btn-secondary" id="menuLogoutBtn">${isGuest() ? 'Log in / Sign up' : 'Log out ' + (u ? '(' + u.uniqueId + ')' : '')}</button>
+    </div>
+  `;
+
+  const list = menuOverlay.querySelector('#menuList');
+  items.forEach((it, i)=>{
+    const div = document.createElement('div');
+    div.id = `menuItem-${it.id}`;
+    div.className = `card fade-in ${i%2===0?'tilt-l':'tilt-r'}`;
+    if(it.action){
+      div.tabIndex = 0;
+      div.setAttribute('role','button');
+      div.style.cursor = 'pointer';
+    }
+    const isThemeToggle = it.action === 'toggle-theme';
+    div.innerHTML = `
+      <div class="seller-row" style="box-shadow:none;padding:0;background:transparent;margin-bottom:0;">
+        <div class="avatar" style="background:var(--kraft-dark);color:var(--ink);font-size:14px;width:28px;height:28px;">${it.icon}</div>
+        <div>
+          <div class="seller-name">${it.title}</div>
+          <div class="item-meta" style="margin-bottom:0;">${it.desc}</div>
+        </div>
+        ${isThemeToggle
+          ? `<div class="theme-switch ${state.theme==='dark'?'on':''}" role="switch" aria-checked="${state.theme==='dark'}" tabindex="0"><div class="theme-switch-knob"></div></div>`
+          : (it.action ? '<div class="role-arrow" style="margin-left:auto;">→</div>' : '')}
+      </div>
+    `;
+    if(isThemeToggle){
+      div.addEventListener('click', toggleTheme);
+      div.addEventListener('keypress', e=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); toggleTheme(); } });
+    } else if(it.action){
+      const go = ()=>{
+        state.menuOpen = false;
+        setView(it.action);
+      };
+      div.addEventListener('click', go);
+      div.addEventListener('keypress', e=>{ if(e.key==='Enter') go(); });
+    }
+    list.appendChild(div);
+  });
+
+  menuOverlay.querySelector('#menuBackdrop').addEventListener('click', closeMenu);
+  menuOverlay.querySelector('#menuCloseBtn').addEventListener('click', closeMenu);
+  menuOverlay.querySelector('#menuSellBtn').addEventListener('click', ()=>{
+    state.menuOpen = false;
+    state.sellForm = { type:'Book', title:'', course:'', price:'', desc:'', photoFile:null, photoPreview:null };
+    state.sellFormError = '';
+    setView('sell');
+  });
+  menuOverlay.querySelector('#menuRentBtn').addEventListener('click', ()=>{
+    state.menuOpen = false;
+    state.sellForm = { type:'Book', title:'', course:'', price:'', desc:'', photoFile:null, photoPreview:null };
+    state.sellFormError = '';
+    setView('rent');
+  });
+  menuOverlay.querySelector('#menuLogoutBtn').addEventListener('click', async ()=>{
+    if(isGuest()){ leaveGuest('login'); return; }
+    state.menuOpen = false;
+    await sb.auth.signOut();
+    state.loggedIn = false;
+    state.currentUser = null;
+    state.loginId = '';
+    state.loginPassword = '';
+    setView('login');
+  });
+}
+
+/* ================= Notification dropdown panel ================= */
+function renderNotifPanel(){
+  notifOverlay.className = `notif-overlay ${state.notifOpen ? 'open' : ''}`;
+  if(!state.notifOpen){ notifOverlay.innerHTML = ''; return; }
+
+  notifOverlay.innerHTML = `
+    <div class="notif-backdrop" id="notifBackdrop"></div>
+    <div class="notif-panel">
+      <div class="notif-panel-head">
+        <span class="notif-panel-title">Notifications</span>
+        <button class="menu-close-btn" id="notifCloseBtn" aria-label="Close notifications">✕</button>
+      </div>
+      <div id="notifList"></div>
+    </div>
+  `;
+
+  const list = notifOverlay.querySelector('#notifList');
+  if(state.notifications.length === 0){
+    list.innerHTML = `<div class="empty-state" style="padding-top:20px;"><span class="em">🔔</span><p>NOTHING YET — WE'LL LET YOU KNOW WHEN SOMETHING HAPPENS</p></div>`;
+  } else {
+    state.notifications.forEach(notif=>{
+      const btn = document.createElement('button');
+      btn.className = `notif-item fade-in ${notif.read ? '' : 'unread'}`;
+      btn.innerHTML = `
+        <span class="notif-item-icon">${notif.icon}</span>
+        <span style="flex:1;">
+          <div class="notif-item-title">${escapeHtml(notif.title)}</div>
+          <div class="notif-item-text">${escapeHtml(notif.text)}</div>
+          <div class="notif-item-time">${escapeHtml(notif.time)}</div>
+        </span>
+      `;
+      btn.addEventListener('click', ()=> handleNotifClick(notif));
+      list.appendChild(btn);
+    });
+  }
+
+  notifOverlay.querySelector('#notifBackdrop').addEventListener('click', closeNotifPanel);
+  notifOverlay.querySelector('#notifCloseBtn').addEventListener('click', closeNotifPanel);
+}
+
+/* ================= Profile stats overlay ================= */
+function openSellerProfile(item){
+  state.viewedProfile = {
+    kind: 'seller',
+    name: item.seller,
+    year: item.year,
+    rating: item.rating,
+    verified: item.verified,
+    listingCount: LISTINGS.filter(l => l.seller === item.seller).length,
+  };
+  renderProfileOverlay();
+}
+
+function openBorrowerProfile(name, year){
+  state.viewedProfile = {
+    kind: 'borrower',
+    name,
+    year,
+    score: getBorrowerScore(name),
+    borrowedCount: getBorrowerRentalCount(name),
+  };
+  renderProfileOverlay();
+}
+
+function closeProfileOverlay(){
+  state.viewedProfile = null;
+  renderProfileOverlay();
+}
+
+function renderProfileOverlay(){
+  const p = state.viewedProfile;
+  profileOverlay.className = `profile-overlay ${p ? 'open' : ''}`;
+  if(!p){ profileOverlay.innerHTML = ''; return; }
+
+  const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+
+  let statsHtml = '';
+  if(p.kind === 'seller'){
+    const lvl = getLevelInfo(p.rating * 20 - 10);
+    statsHtml = `
+      <div class="summary-row"><span class="summary-key">LEVEL</span><span class="summary-val">${lvl.emoji} Lv.${lvl.level} — ${lvl.name}</span></div>
+      <div class="summary-row"><span class="summary-key">RATING</span><span class="summary-val">${'★'.repeat(p.rating)}${'☆'.repeat(5-p.rating)}</span></div>
+      <div class="summary-row"><span class="summary-key">VERIFIED BY</span><span class="summary-val">${p.verified} students</span></div>
+      <div class="summary-row"><span class="summary-key">ITEMS LISTED</span><span class="summary-val">${p.listingCount}</span></div>
+    `;
+  } else {
+    const lvl = getLevelInfo(p.score);
+    const progressPct = Math.round(((p.score - lvl.floor) / (lvl.ceil - lvl.floor)) * 100);
+    statsHtml = `
+      <div class="summary-row"><span class="summary-key">LEVEL</span><span class="summary-val">${lvl.emoji} Lv.${lvl.level} — ${lvl.name}</span></div>
+      <div class="level-bar-track"><div class="level-bar-fill" style="width:${progressPct}%;"></div></div>
+      <div class="summary-row" style="margin-top:8px;"><span class="summary-key">ITEMS BORROWED</span><span class="summary-val">${p.borrowedCount}</span></div>
+    `;
+  }
+
+  profileOverlay.innerHTML = `
+    <div class="profile-backdrop" id="profileBackdrop"></div>
+    <div class="profile-modal fade-in">
+      <button class="profile-modal-close" id="profileCloseBtn" aria-label="Close profile">✕</button>
+      <div class="avatar">${escapeHtml(initials)}</div>
+      <div class="profile-modal-name">${escapeHtml(p.name)}</div>
+      <div class="profile-modal-sub">${p.kind==='seller' ? 'Lister' : 'Borrower'}${p.year ? ' · '+escapeHtml(p.year) : ''}</div>
+      <div class="profile-modal-stats">${statsHtml}</div>
+    </div>
+  `;
+
+  profileOverlay.querySelector('#profileBackdrop').addEventListener('click', closeProfileOverlay);
+  profileOverlay.querySelector('#profileCloseBtn').addEventListener('click', closeProfileOverlay);
+}
+
+/* ================= Sell / Rent (stub listing forms) ================= */
+function renderSellRent(mode){
+  const isSell = mode === 'sell';
+  // form values live in state.sellForm so a validation/upload/insert error
+  // (which re-renders this same screen) doesn't wipe out what was typed.
+  if(!state.sellForm) state.sellForm = { type:'Book', title:'', course:'', price:'', desc:'', photoFile:null, photoPreview:null };
+  const f = state.sellForm;
+
+  screenEl.innerHTML = `
+    <div class="fade-in" style="margin-top:24px;">
+      <span class="type-tag ${isSell?'college':'student'}">${isSell ? '💰 LIST AN ITEM FOR SALE' : '🔁 LIST AN ITEM FOR RENT'}</span>
+
+      <label class="field-label">PHOTO</label>
+      <input type="file" id="sr_photoInput" accept="image/*" style="display:none;" />
+      <div id="sr_photoWrap"></div>
+
+      <label class="field-label">ITEM TYPE</label>
+      <select id="sr_type">
+        <option ${f.type==='Book'?'selected':''}>Book</option>
+        <option ${f.type==='Notes'?'selected':''}>Notes</option>
+        <option ${f.type==='PYQ Set'?'selected':''}>PYQ Set</option>
+      </select>
+
+      <label class="field-label">TITLE</label>
+      <input type="text" id="sr_title" placeholder="e.g. Data Structures & Algorithms" value="${escapeHtml(f.title)}" />
+
+      <label class="field-label">COURSE NAME</label>
+      <input type="text" id="sr_course" placeholder="e.g. B.Tech CSE" value="${escapeHtml(f.course)}" />
+
+      <label class="field-label">${isSell ? 'PRICE (₹, LEAVE BLANK IF FREE)' : 'RENT PRICE (₹ / WEEK)'}</label>
+      <input type="text" id="sr_price" placeholder="${isSell ? 'e.g. 250' : 'e.g. 40'}" value="${escapeHtml(f.price)}" />
+
+      <label class="field-label">CONDITION / NOTES</label>
+      <textarea id="sr_desc" rows="3" placeholder="e.g. Good condition, some highlighting">${escapeHtml(f.desc)}</textarea>
+
+      ${state.sellFormError ? `<div class="field-error">${state.sellFormError}</div>` : ''}
+      <button class="btn-primary" id="sr_submit">${isSell ? 'List for sale' : 'List for rent'}</button>
+    </div>
+  `;
+
+  const photoInput = screenEl.querySelector('#sr_photoInput');
+  const photoWrap = screenEl.querySelector('#sr_photoWrap');
+
+  function showUploadBox(){
+    photoWrap.innerHTML = `
+      <div class="photo-upload-box" id="sr_photoBox" role="button" tabindex="0">
+        <span class="pu-icon">📷</span>
+        <span>Tap to add a photo of the item</span>
+      </div>
+    `;
+    bindUploadBox();
+  }
+
+  function showPreview(dataUrl){
+    photoWrap.innerHTML = `
+      <div class="photo-preview fade-in">
+        <img src="${dataUrl}" alt="Item photo preview" />
+        <button class="photo-remove-btn" id="sr_photoRemove" aria-label="Remove photo">✕</button>
+      </div>
+    `;
+    photoWrap.querySelector('#sr_photoRemove').addEventListener('click', ()=>{
+      photoInput.value = '';
+      f.photoFile = null;
+      f.photoPreview = null;
+      showUploadBox();
+    });
+  }
+
+  function bindUploadBox(){
+    const box = photoWrap.querySelector('#sr_photoBox');
+    const open = ()=> photoInput.click();
+    box.addEventListener('click', open);
+    box.addEventListener('keypress', e=>{ if(e.key==='Enter') open(); });
+  }
+
+  // restore whatever photo was already picked before a re-render
+  if(f.photoPreview) showPreview(f.photoPreview); else showUploadBox();
+
+  photoInput.addEventListener('change', ()=>{
+    const file = photoInput.files && photoInput.files[0];
+    if(!file) return;
+    f.photoFile = file;
+    const reader = new FileReader();
+    reader.onload = ()=>{ f.photoPreview = reader.result; showPreview(reader.result); };
+    reader.readAsDataURL(file);
+  });
+
+  screenEl.querySelector('#sr_type').addEventListener('change', e=> f.type = e.target.value);
+  screenEl.querySelector('#sr_title').addEventListener('input', e=> f.title = e.target.value);
+  screenEl.querySelector('#sr_course').addEventListener('input', e=> f.course = e.target.value);
+  screenEl.querySelector('#sr_price').addEventListener('input', e=> f.price = e.target.value);
+  screenEl.querySelector('#sr_desc').addEventListener('input', e=> f.desc = e.target.value);
+
+  screenEl.querySelector('#sr_submit').addEventListener('click', async ()=>{
+    const title = f.title.trim();
+    const course = f.course.trim();
+    const condition = f.desc.trim();
+    const priceRaw = f.price.trim();
+    const kind = f.type === 'Book' ? 'book' : f.type === 'PYQ Set' ? 'pyq' : 'notes';
+
+    if(!title){
+      state.sellFormError = 'Please enter a title.';
+      return render();
+    }
+    state.sellFormError = '';
+
+    const submitBtn = screenEl.querySelector('#sr_submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Listing…';
+
+    try{
+      let photoUrl = null;
+      if(f.photoFile){
+        const path = `${state.currentUser.id}/${Date.now()}-${f.photoFile.name}`;
+        const { error: uploadErr } = await sb.storage.from('listing-photos').upload(path, f.photoFile);
+        if(uploadErr){
+          state.sellFormError = 'Photo upload failed: ' + uploadErr.message;
+          return render();
+        }
+        photoUrl = sb.storage.from('listing-photos').getPublicUrl(path).data.publicUrl;
+      }
+
+      const isFree = isSell && !priceRaw;
+      const priceText = isFree ? 'Free' : (isSell ? `₹${priceRaw}` : `₹${priceRaw}/week`);
+
+      const { error: insertErr } = await sb.from('listings').insert({
+        seller_id: state.currentUser.id,
+        kind,
+        title,
+        course,
+        condition,
+        price_text: priceText,
+        is_free: isFree,
+        sale_type: isSell ? 'buy' : 'rent',
+        status: 'available',
+        photo_url: photoUrl,
+      });
+      if(insertErr){
+        state.sellFormError = insertErr.message;
+        return render();
+      }
+
+      state.sellForm = null;
+      await refreshListings();
+      setView('search');
+    } catch(err){
+      logErr('list item', err);
+      state.sellFormError = 'Something went wrong — check your connection and try again.';
+      render();
+    }
+  });
+}
+function renderSell(){ renderSellRent('sell'); }
+function renderRent(){ renderSellRent('rent'); }
+
+/* ---------------- global nav bindings ---------------- */
+document.querySelectorAll('.nav-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    if(b.dataset.nav==='search') setView('search');
+    if(b.dataset.nav==='requests') setView('requests');
+    if(b.dataset.nav==='myitems') setView('myitems');
+    if(b.dataset.nav==='profile') setView('profile');
+  });
+});
+
+/* ---------------- app bootstrap ---------------- */
+async function initApp(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session && session.user){
+    await loadCurrentUserAndData(session.user);
+    state.view = 'search';
+  }
+  render();
+}
+initApp();
+</script>
+</body>
+</html>
